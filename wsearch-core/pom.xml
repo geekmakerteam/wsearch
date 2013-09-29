@@ -23,8 +23,9 @@
             <artifactId>lucene-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>wsearch</groupId>
-            <artifactId>wsearch-client</artifactId>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+            <version>3.6.2</version>
         </dependency>
     </dependencies>
 </project>
