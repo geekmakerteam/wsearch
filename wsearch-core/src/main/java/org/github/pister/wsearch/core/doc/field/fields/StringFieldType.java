@@ -2,6 +2,7 @@ package org.github.pister.wsearch.core.doc.field.fields;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Fieldable;
+import org.apache.lucene.search.SortField;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
 
 /**
@@ -18,4 +19,8 @@ public class StringFieldType extends AbstractFieldType {
         return field;
     }
 
+    @Override
+    public int getSortType() {
+        return SortField.STRING;
+    }
 }

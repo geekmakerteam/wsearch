@@ -1,6 +1,7 @@
 package org.github.pister.wsearch.core.searcher.query;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * User: longyi
@@ -11,11 +12,17 @@ public class SearchQuery implements Serializable {
 
     private static final long serialVersionUID = -3631454362128879058L;
 
+    public static final int ASC = 0;
+
+    public static final int DESC = 1;
+
     private String query;
 
     private int pageNo = 1;
 
     private int pageSize = 20;
+
+    private List<FieldSort> fieldSorts;
 
     public int getPageNo() {
         return pageNo;
@@ -45,5 +52,13 @@ public class SearchQuery implements Serializable {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public List<FieldSort> getFieldSorts() {
+        return fieldSorts;
+    }
+
+    public void setFieldSorts(List<FieldSort> fieldSorts) {
+        this.fieldSorts = fieldSorts;
     }
 }

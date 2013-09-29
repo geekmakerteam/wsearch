@@ -1,6 +1,7 @@
 package org.github.pister.wsearch.core.doc.field.fields;
 
 import org.apache.lucene.document.NumericField;
+import org.apache.lucene.search.SortField;
 import org.github.pister.wsearch.core.util.date.SmartDateConvert;
 
 import java.util.Date;
@@ -20,6 +21,11 @@ public class DateFieldType extends AbstractNumericFieldType {
             return 0L;
         }
         return date.getTime();
+    }
+
+    @Override
+    public int getSortType() {
+        return SortField.LONG;
     }
 
     @Override
