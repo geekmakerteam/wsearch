@@ -5,7 +5,6 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
 import org.github.pister.wsearch.core.util.LuceneConfig;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
