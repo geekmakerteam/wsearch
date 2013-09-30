@@ -13,4 +13,5 @@ public class RAMSchemaMeta implements SchemaMeta {
     public Directory openDirectory() {
         return new RAMDirectory();
     }
+
 }

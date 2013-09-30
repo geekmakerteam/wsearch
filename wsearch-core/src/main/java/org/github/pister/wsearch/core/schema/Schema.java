@@ -14,30 +14,24 @@ import java.util.Map;
  * Date: 13-9-28
  * Time: 下午10:22
  */
-public class Schema implements Serializable {
-
-    private static final long serialVersionUID = -903262651256505953L;
+public class Schema {
 
     private SchemaMeta schemaMeta;
-
     private String idName = "id";
-
     private String defaultSearchField;
-
     private Map<String, FieldInfo> fieldInfos = new HashMap<String, FieldInfo>();
-
     private Analyzer analyzer = new StandardAnalyzer(LuceneConfig.LUCENE_VERSION);
 
     public Schema(SchemaMeta schemaMeta) {
         this.schemaMeta = schemaMeta;
     }
 
-    public void setIdName(String idName) {
-        this.idName = idName;
-    }
-
     public String getIdName() {
         return idName;
+    }
+
+    public void setIdName(String idName) {
+        this.idName = idName;
     }
 
     public Map<String, FieldInfo> getFieldInfos() {
