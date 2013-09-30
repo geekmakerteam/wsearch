@@ -1,6 +1,7 @@
 package org.github.pister.wsearch.core.doc;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -11,10 +12,15 @@ import java.util.Map;
 public class InputDocument implements Serializable {
 
     private static final long serialVersionUID = -7666686778357266085L;
-    private Map<String, String> fields;
+
+    private Map<String, String> fields = new HashMap<String, String>();
 
     public Map<String, String> getFields() {
         return fields;
+    }
+
+    public void addField(String name, String value) {
+        fields.put(name, value);
     }
 
     public void setFields(Map<String, String> fields) {

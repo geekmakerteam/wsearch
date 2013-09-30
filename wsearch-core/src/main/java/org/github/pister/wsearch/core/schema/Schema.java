@@ -1,9 +1,12 @@
 package org.github.pister.wsearch.core.schema;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
+import org.github.pister.wsearch.core.util.LuceneConfig;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -15,15 +18,19 @@ public class Schema implements Serializable {
 
     private static final long serialVersionUID = -903262651256505953L;
 
-    private MetaInfo metaInfo;
+    private SchemaMeta schemaMeta;
 
-    private String idName;
+    private String idName = "id";
 
     private String defaultSearchField;
 
-    private Map<String, FieldInfo> fieldInfos;
+    private Map<String, FieldInfo> fieldInfos = new HashMap<String, FieldInfo>();
 
-    private Analyzer analyzer;
+    private Analyzer analyzer = new StandardAnalyzer(LuceneConfig.LUCENE_VERSION);
+
+    public Schema(SchemaMeta schemaMeta) {
+        this.schemaMeta = schemaMeta;
+    }
 
     public void setIdName(String idName) {
         this.idName = idName;
@@ -37,16 +44,16 @@ public class Schema implements Serializable {
         return fieldInfos;
     }
 
-    public void setFieldInfos(Map<String, FieldInfo> fieldInfos) {
-        this.fieldInfos = fieldInfos;
+    public void addFieldInfo(FieldInfo fieldInfo) {
+        fieldInfos.put(fieldInfo.getName(), fieldInfo);
     }
 
-    public MetaInfo getMetaInfo() {
-        return metaInfo;
+    public SchemaMeta getSchemaMeta() {
+        return schemaMeta;
     }
 
-    public void setMetaInfo(MetaInfo metaInfo) {
-        this.metaInfo = metaInfo;
+    public void setSchemaMeta(SchemaMeta schemaMeta) {
+        this.schemaMeta = schemaMeta;
     }
 
     public Analyzer getAnalyzer() {

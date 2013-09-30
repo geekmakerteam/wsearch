@@ -15,6 +15,15 @@ public class DoubleFieldType extends AbstractNumericFieldType {
     }
 
     @Override
+    protected Object getValue(NumericField numericField) {
+        Number number = numericField.getNumericValue();
+        if (number == null) {
+            return null;
+        }
+        return number.doubleValue();
+    }
+
+    @Override
     public int getSortType() {
         return SortField.DOUBLE;
     }

@@ -20,6 +20,11 @@ public class StringFieldType extends AbstractFieldType {
     }
 
     @Override
+    public Object getValue(Fieldable fieldable) {
+        return fieldable.stringValue();
+    }
+
+    @Override
     public int getSortType() {
         return SortField.STRING;
     }

@@ -18,11 +18,24 @@ import java.util.Map;
  */
 public class DocumentTransformUtil {
 
-    public static OutputDocument toOutputDocument(Document document) {
+    public static OutputDocument toOutputDocument(Document document, Schema schema) {
         if (document == null) {
             return null;
         }
+        Map<String, FieldInfo> fieldInfoMap = schema.getFieldInfos();
         OutputDocument ret = new OutputDocument();
+        List<Fieldable> fields = document.getFields();
+        for (Fieldable fieldable : fields) {
+            String name = fieldable.name();
+            FieldInfo fieldInfo = fieldInfoMap.get(name);
+            Object value;
+            if (fieldInfo != null) {
+               value = fieldInfo.getFieldType().getValue(fieldable);
+            } else {
+                value = fieldable.stringValue();
+            }
+            ret.addField(name, value);
+        }
         return ret;
     }
 
@@ -37,6 +50,9 @@ public class DocumentTransformUtil {
 
     private static Fieldable createField(String name, String value, Map<String, FieldInfo> fieldInfoMap) {
         FieldInfo fieldInfo = fieldInfoMap.get(name);
+        if (fieldInfo == null) {
+            throw new RuntimeException("field " + name + " not config!");
+        }
         return fieldInfo.createField(value);
     }
 

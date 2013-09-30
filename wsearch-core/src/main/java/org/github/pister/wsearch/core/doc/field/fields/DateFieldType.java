@@ -24,6 +24,15 @@ public class DateFieldType extends AbstractNumericFieldType {
     }
 
     @Override
+    protected Object getValue(NumericField numericField) {
+        Number number = numericField.getNumericValue();
+        if (number != null) {
+            return new Date(number.longValue());
+        }
+        return null;
+    }
+
+    @Override
     public int getSortType() {
         return SortField.LONG;
     }

@@ -14,10 +14,17 @@ public abstract class AbstractNumericFieldType extends AbstractFieldType {
     @Override
     public Fieldable createField(FieldInfo fieldInfo, String value) {
         NumericField numericField = new NumericField(fieldInfo.getName(), fieldInfo.getPrecisionStep(), getStore(fieldInfo), fieldInfo.isIndex());
+        setValue(numericField, value);
         return numericField;
     }
 
+    public Object getValue(Fieldable fieldable) {
+        return getValue(((NumericField) fieldable));
+    }
+
     protected abstract void setValue(NumericField numericField, String value);
+
+    protected abstract Object getValue(NumericField numericField);
 
 
 }

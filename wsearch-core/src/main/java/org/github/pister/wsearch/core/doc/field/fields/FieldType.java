@@ -12,5 +12,9 @@ public interface FieldType {
 
     Fieldable createField(FieldInfo fieldInfo, String value);
 
+    Object getValue(Fieldable fieldable);
+
     int getSortType();
+
+
 }

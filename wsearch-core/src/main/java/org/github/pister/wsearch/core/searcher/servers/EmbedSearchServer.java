@@ -18,6 +18,8 @@ import org.apache.lucene.store.FSDirectory;
 import org.github.pister.wsearch.core.doc.DocumentTransformUtil;
 import org.github.pister.wsearch.core.doc.InputDocument;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
+import org.github.pister.wsearch.core.log.Logger;
+import org.github.pister.wsearch.core.log.LoggerFactory;
 import org.github.pister.wsearch.core.schema.Schema;
 import org.github.pister.wsearch.core.searcher.SearchServer;
 import org.github.pister.wsearch.core.searcher.query.FieldSort;
@@ -51,6 +53,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class EmbedSearchServer implements SearchServer {
 
+    private static final Logger logger = LoggerFactory.getLogger(EmbedSearchServer.class);
+
     private final int REOPEN_MIN_COUNT = 1000;
     private final int REOPEN_WAIT_TIMEOUT = 2 * 60;
     private Schema schema;
@@ -74,7 +78,7 @@ public class EmbedSearchServer implements SearchServer {
                         updateCount.set(0);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("proccess reopen error", e);
                 }
             }
         }
@@ -107,7 +111,7 @@ public class EmbedSearchServer implements SearchServer {
             return;
         }
         try {
-            directory = FSDirectory.open(schema.getMetaInfo().getDataPath());
+            directory = FSDirectory.open(schema.getSchemaMeta().getDataPath());
             open(directory);
             opened.set(true);
             reopenThread.start();
@@ -120,6 +124,9 @@ public class EmbedSearchServer implements SearchServer {
         IndexWriter newIndexWriter = null;
         IndexReader newIndexReader = null;
         IndexSearcher newIndexSearcher = null;
+        if (logger.isDebugEnabled()) {
+            logger.debug("opening directory...");
+        }
         try {
             IndexWriterConfig indexWriterConfig = new IndexWriterConfig(LuceneConfig.LUCENE_VERSION, schema.getAnalyzer());
             newIndexWriter = new IndexWriter(directory, indexWriterConfig);
@@ -139,7 +146,11 @@ public class EmbedSearchServer implements SearchServer {
                 LuceneUtil.close(oldIndexReader);
                 LuceneUtil.close(oldIndexWriter);
             }
+            if (logger.isDebugEnabled()) {
+                logger.debug("open directory finish.");
+            }
         } catch (IOException e) {
+            logger.error("open directory error", e);
             LuceneUtil.close(newIndexSearcher);
             LuceneUtil.close(newIndexReader);
             LuceneUtil.close(newIndexWriter);
@@ -158,12 +169,22 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public AddResponse add(Collection<InputDocument> inputDocuments) {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("adding documents...");
+            }
             for (InputDocument inputDocument : inputDocuments) {
                 assertIdExist(inputDocument);
             }
-            indexWriter.addDocuments(DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema), schema.getAnalyzer());
+            for (Document document : DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema)) {
+                indexWriter.updateDocument(new Term(schema.getIdName(), document.getFieldable(schema.getIdName()).stringValue()), document, schema.getAnalyzer());
+            }
+          //  indexWriter.addDocuments(DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema), schema.getAnalyzer());
             updateCount.addAndGet(inputDocuments.size());
+            if (logger.isDebugEnabled()) {
+                logger.debug("add documents finish.");
+            }
         } catch (Exception e) {
+            logger.error("add documents error", e);
             return new AddResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         }
         return new AddResponse();
@@ -172,9 +193,16 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public AddResponse add(InputDocument inputDocument) {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("adding document...");
+            }
             assertIdExist(inputDocument);
-            indexWriter.addDocument(DocumentTransformUtil.toLuceneDocument(inputDocument, schema), schema.getAnalyzer());
+            Document document = DocumentTransformUtil.toLuceneDocument(inputDocument, schema);
+            indexWriter.updateDocument(new Term(schema.getIdName(), document.getFieldable(schema.getIdName()).stringValue()), document, schema.getAnalyzer());
             updateCount.incrementAndGet();
+            if (logger.isDebugEnabled()) {
+                logger.debug("add document finish.");
+            }
         } catch (IOException e) {
             return new AddResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         }
@@ -190,11 +218,19 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public OperationResponse commit() {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("commiting...");
+            }
             indexWriter.commit();
+            if (logger.isDebugEnabled()) {
+                logger.debug("commit finish.");
+            }
         } catch (IOException e) {
+            logger.error("commit error", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         } catch (OutOfMemoryError e) {
             LuceneUtil.close(indexWriter);
+            logger.error("error of OOM", e);
             // TODO reopen writer?
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
 
@@ -205,11 +241,19 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public OperationResponse optimize() {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("optimizing...");
+            }
             indexWriter.forceMerge(defaultMergeSize);
+            if (logger.isDebugEnabled()) {
+                logger.debug("optimize finish.");
+            }
         } catch (IOException e) {
+            logger.error("optimize error", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         } catch (OutOfMemoryError e) {
             LuceneUtil.close(indexWriter);
+            logger.error("error of OOM", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
 
         }
@@ -219,8 +263,15 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public OperationResponse rollback() {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("rollbacking...");
+            }
             indexWriter.rollback();
+            if (logger.isDebugEnabled()) {
+                logger.debug("rollback finish.");
+            }
         } catch (IOException e) {
+            logger.error("rollback error", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         }
         return new OperationResponse();
@@ -231,6 +282,7 @@ public class EmbedSearchServer implements SearchServer {
         if (CollectionUtil.isEmpty(ids)) {
             return new DeleteResponse();
         }
+
         final String idName = schema.getIdName();
         Term[] terms = new Term[ids.size()];
         int index = 0;
@@ -238,9 +290,16 @@ public class EmbedSearchServer implements SearchServer {
             terms[index++] = new Term(idName, id);
         }
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("deleting documents...");
+            }
             indexWriter.deleteDocuments(terms);
             updateCount.addAndGet(ids.size());
+            if (logger.isDebugEnabled()) {
+                logger.debug("delete documents finish.");
+            }
         } catch (IOException e) {
+            logger.error("delete error", e);
             return new DeleteResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         }
         return new DeleteResponse();
@@ -270,7 +329,7 @@ public class EmbedSearchServer implements SearchServer {
                 String name = fieldSort.getName();
                 FieldInfo fieldInfo = schema.getFieldInfos().get(name);
                 boolean orderOfDesc = (fieldSort.getOrder() == FieldSort.DESC);
-                SortField sortField = new SortField(name, fieldInfo.getType().getSortType(), orderOfDesc);
+                SortField sortField = new SortField(name, fieldInfo.getFieldType().getSortType(), orderOfDesc);
                 targetSorts[i++] = sortField;
             }
             sort.setSort(targetSorts);
@@ -281,6 +340,9 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public QueryResponse query(SearchQuery searchQuery) {
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("searching query...");
+            }
             QueryParser queryParser = new QueryParser(LuceneConfig.LUCENE_VERSION, schema.getDefaultSearchField(), schema.getAnalyzer());
             Query query = queryParser.parse(searchQuery.getQuery());
             Filter filter = null;
@@ -303,7 +365,7 @@ public class EmbedSearchServer implements SearchServer {
                 outputDocuments = CollectionUtil.newArrayList(scoreDocs.length - pageStartIndex);
                 for (int i = pageStartIndex; i < scoreDocs.length; ++i) {
                     Document doc = indexSearcher.doc(scoreDocs[i].doc);
-                    OutputDocument outputDocument = DocumentTransformUtil.toOutputDocument(doc);
+                    OutputDocument outputDocument = DocumentTransformUtil.toOutputDocument(doc, schema);
                     outputDocuments.add(outputDocument);
                 }
             }
@@ -312,8 +374,12 @@ public class EmbedSearchServer implements SearchServer {
             queryResponse.setOutputDocuments(outputDocuments);
             queryResponse.setTotalHits(topFieldDocs.totalHits);
 
+            if (logger.isDebugEnabled()) {
+                logger.debug("search query finish.");
+            }
             return queryResponse;
         } catch (Exception e) {
+            logger.error("search query error", e);
             return new QueryResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         }
     }
