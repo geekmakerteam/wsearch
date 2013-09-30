@@ -1,32 +1,13 @@
 package org.github.pister.wsearch.core.schema;
 
-import java.io.File;
-import java.io.Serializable;
+import org.apache.lucene.store.Directory;
 
 /**
  * User: longyi
- * Date: 13-9-29
- * Time: 上午11:31
+ * Date: 13-9-30
+ * Time: 下午4:06
  */
-public class SchemaMeta implements Serializable {
-    private static final long serialVersionUID = -8995977738460544647L;
+public interface SchemaMeta {
 
-    private File basePath;
-    private File dataPath;
-
-    public SchemaMeta(String schemaPath) {
-        basePath = new File(schemaPath);
-        if (!basePath.exists()) {
-            basePath.mkdirs();
-        }
-        dataPath = new File(basePath, "data");
-        dataPath.mkdir();
-    }
-
-
-    public File getDataPath() {
-        return dataPath;
-    }
-
-
+    Directory openDirectory();
 }

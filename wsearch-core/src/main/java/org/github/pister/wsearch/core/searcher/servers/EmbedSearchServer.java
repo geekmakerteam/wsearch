@@ -14,7 +14,6 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TopFieldDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.github.pister.wsearch.core.doc.DocumentTransformUtil;
 import org.github.pister.wsearch.core.doc.InputDocument;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
@@ -31,9 +30,9 @@ import org.github.pister.wsearch.core.searcher.response.OperationResponse;
 import org.github.pister.wsearch.core.searcher.response.PongResponse;
 import org.github.pister.wsearch.core.searcher.response.QueryResponse;
 import org.github.pister.wsearch.core.searcher.response.ResultCodes;
+import org.github.pister.wsearch.core.util.CloseUtil;
 import org.github.pister.wsearch.core.util.CollectionUtil;
 import org.github.pister.wsearch.core.util.LuceneConfig;
-import org.github.pister.wsearch.core.util.LuceneUtil;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -54,12 +53,10 @@ import java.util.concurrent.locks.ReentrantLock;
 public class EmbedSearchServer implements SearchServer {
 
     private static final Logger logger = LoggerFactory.getLogger(EmbedSearchServer.class);
-
     private final int REOPEN_MIN_COUNT = 1000;
-    private final int REOPEN_WAIT_TIMEOUT = 2 * 60;
+    private final int REOPEN_WAIT_TIMEOUT = 10;
     private Schema schema;
     private volatile IndexWriter indexWriter;
-    private volatile IndexReader indexReader;
     private volatile IndexSearcher indexSearcher;
     private Directory directory;
     private int defaultMergeSize = 5;
@@ -71,11 +68,11 @@ public class EmbedSearchServer implements SearchServer {
     private Thread reopenThread = new Thread() {
         @Override
         public void run() {
+            logger.info("reopen job thread has running.");
             while (opened.get()) {
                 try {
                     if (needReopen()) {
-                        indexReader = IndexReader.openIfChanged(indexReader);
-                        updateCount.set(0);
+                        reopenSearcher();
                     }
                 } catch (IOException e) {
                     logger.error("proccess reopen error", e);
@@ -88,6 +85,7 @@ public class EmbedSearchServer implements SearchServer {
                 reopenLock.lock();
                 boolean timeout = reopenCondition.await(REOPEN_WAIT_TIMEOUT, TimeUnit.SECONDS);
                 if (!timeout) {
+                    logger.info("need reopen for timeout.");
                     return true;
                 }
             } catch (InterruptedException e) {
@@ -96,6 +94,7 @@ public class EmbedSearchServer implements SearchServer {
                 reopenLock.unlock();
             }
             if (updateCount.get() > REOPEN_MIN_COUNT) {
+                logger.info("need reopen for count.");
                 return true;
             }
             return false;
@@ -111,7 +110,7 @@ public class EmbedSearchServer implements SearchServer {
             return;
         }
         try {
-            directory = FSDirectory.open(schema.getSchemaMeta().getDataPath());
+            directory = schema.getSchemaMeta().openDirectory();
             open(directory);
             opened.set(true);
             reopenThread.start();
@@ -135,34 +134,50 @@ public class EmbedSearchServer implements SearchServer {
 
             synchronized (this) {
                 IndexWriter oldIndexWriter = this.indexWriter;
-                IndexReader oldIndexReader = this.indexReader;
                 IndexSearcher oldIndexSearcher = this.indexSearcher;
 
-                this.indexReader = newIndexReader;
                 this.indexWriter = newIndexWriter;
                 this.indexSearcher = newIndexSearcher;
 
-                LuceneUtil.close(oldIndexSearcher);
-                LuceneUtil.close(oldIndexReader);
-                LuceneUtil.close(oldIndexWriter);
+                CloseUtil.close(oldIndexSearcher);
+                CloseUtil.close(oldIndexWriter);
             }
             if (logger.isDebugEnabled()) {
                 logger.debug("open directory finish.");
             }
         } catch (IOException e) {
             logger.error("open directory error", e);
-            LuceneUtil.close(newIndexSearcher);
-            LuceneUtil.close(newIndexReader);
-            LuceneUtil.close(newIndexWriter);
+            CloseUtil.close(newIndexSearcher);
+            CloseUtil.close(newIndexReader);
+            CloseUtil.close(newIndexWriter);
             throw e;
         }
 
     }
 
+    protected void reopenSearcher() throws IOException {
+        try {
+            reopenLock.lock();
+            if (updateCount.get() > 0) {
+                logger.info("proccessing reopen...");
+                IndexReader indexReader = IndexReader.openIfChanged(indexSearcher.getIndexReader());
+                IndexSearcher newIndexSearcher = new IndexSearcher(indexReader);
+                // please do not indexSearcher.close();
+                indexSearcher = newIndexSearcher;
+                updateCount.set(0);
+                logger.info("proccess reopen finish.");
+            } else {
+                logger.info("no thing to reopen");
+            }
+        } finally {
+            reopenLock.unlock();
+        }
+    }
+
     public void close() {
-        LuceneUtil.close(indexSearcher);
-        LuceneUtil.close(indexReader);
-        LuceneUtil.close(indexWriter);
+        CloseUtil.close(indexSearcher);
+        CloseUtil.close(indexWriter);
+        CloseUtil.close(directory);
         opened.set(false);
     }
 
@@ -178,7 +193,7 @@ public class EmbedSearchServer implements SearchServer {
             for (Document document : DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema)) {
                 indexWriter.updateDocument(new Term(schema.getIdName(), document.getFieldable(schema.getIdName()).stringValue()), document, schema.getAnalyzer());
             }
-          //  indexWriter.addDocuments(DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema), schema.getAnalyzer());
+            //  indexWriter.addDocuments(DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema), schema.getAnalyzer());
             updateCount.addAndGet(inputDocuments.size());
             if (logger.isDebugEnabled()) {
                 logger.debug("add documents finish.");
@@ -225,11 +240,12 @@ public class EmbedSearchServer implements SearchServer {
             if (logger.isDebugEnabled()) {
                 logger.debug("commit finish.");
             }
+            reopenSearcher();
         } catch (IOException e) {
             logger.error("commit error", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         } catch (OutOfMemoryError e) {
-            LuceneUtil.close(indexWriter);
+            CloseUtil.close(indexWriter);
             logger.error("error of OOM", e);
             // TODO reopen writer?
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
@@ -248,11 +264,41 @@ public class EmbedSearchServer implements SearchServer {
             if (logger.isDebugEnabled()) {
                 logger.debug("optimize finish.");
             }
+            reopenSearcher();
         } catch (IOException e) {
             logger.error("optimize error", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
         } catch (OutOfMemoryError e) {
-            LuceneUtil.close(indexWriter);
+            CloseUtil.close(indexWriter);
+            logger.error("error of OOM", e);
+            return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
+
+        }
+        return new OperationResponse();
+    }
+
+    public OperationResponse commitAndOptimize() {
+        try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("commiting...");
+            }
+            indexWriter.commit();
+            if (logger.isDebugEnabled()) {
+                logger.debug("commit finish.");
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("optimizing...");
+            }
+            indexWriter.forceMerge(defaultMergeSize);
+            if (logger.isDebugEnabled()) {
+                logger.debug("optimize finish.");
+            }
+            reopenSearcher();
+        } catch (IOException e) {
+            logger.error("optimize error", e);
+            return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
+        } catch (OutOfMemoryError e) {
+            CloseUtil.close(indexWriter);
             logger.error("error of OOM", e);
             return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
 

@@ -4,6 +4,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.search.IndexSearcher;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -11,7 +12,17 @@ import java.io.IOException;
  * Date: 13-9-29
  * Time: 下午9:27
  */
-public class LuceneUtil {
+public class CloseUtil {
+
+    public static void close(Closeable c) {
+         if (c != null) {
+             try {
+                 c.close();
+             } catch (IOException e) {
+                 // ingore
+             }
+         }
+    }
 
     public static void close(IndexReader r) {
         if (r != null) {

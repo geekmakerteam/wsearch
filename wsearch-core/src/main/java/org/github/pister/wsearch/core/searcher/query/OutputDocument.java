@@ -21,4 +21,12 @@ public class OutputDocument implements Serializable {
     public void addField(String name, Object value) {
         fields.put(name, value);
     }
+
+    public Object getField(String name) {
+        return fields.get(name);
+    }
+
+    public String toString() {
+        return "OutputDocument:" + fields;
+    }
 }

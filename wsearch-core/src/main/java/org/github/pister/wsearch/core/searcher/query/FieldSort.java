@@ -16,6 +16,14 @@ public class FieldSort implements Serializable {
     private String name;
     private int order;
 
+    public FieldSort() {
+    }
+
+    public FieldSort(String name, int order) {
+        this.name = name;
+        this.order = order;
+    }
+
     public String getName() {
         return name;
     }

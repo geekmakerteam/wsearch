@@ -26,6 +26,8 @@ public interface SearchServer {
 
     OperationResponse optimize();
 
+    OperationResponse commitAndOptimize();
+
     OperationResponse rollback();
 
     DeleteResponse deleteByIds(List<String> ids);
