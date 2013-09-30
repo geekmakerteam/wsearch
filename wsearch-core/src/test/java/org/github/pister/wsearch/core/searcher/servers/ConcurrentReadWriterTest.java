@@ -15,6 +15,39 @@ import java.util.Random;
  */
 public class ConcurrentReadWriterTest extends TestCase {
 
+    Thread writerThread = new Thread() {
+
+        private Random random = new Random(System.currentTimeMillis());
+        private int seq = 1;
+
+        private int getNextId() {
+            return seq++;
+        }
+
+        @Override
+        public void run() {
+            int loopCount = 0;
+            while (true) {
+                int ran = random.nextInt(10);
+                InputDocument inputDocument = new InputDocument();
+                inputDocument.addField("name", "name-" + loopCount);
+                if (ran < 6) {
+                    // for new
+                    int id = getNextId();
+                    inputDocument.addField("id", id);
+                   // inputDocument.addField("date", );
+
+                } else if (ran < 9) {
+                    // 6,7,8 for new
+                } else {
+                    // 9 for delete
+                }
+
+                embedSearchServer.add(inputDocument);
+                loopCount++;
+            }
+        }
+    };
     private EmbedSearchServer embedSearchServer;
 
     @Override
@@ -33,19 +66,6 @@ public class ConcurrentReadWriterTest extends TestCase {
             FieldInfo fieldInfo = new FieldInfo("name");
             fieldInfo.setIndex(true);
             fieldInfo.setStore(true);
-            schema.addFieldInfo(fieldInfo);
-        }
-        {
-            FieldInfo fieldInfo = new FieldInfo("addr");
-            fieldInfo.setIndex(true);
-            fieldInfo.setStore(true);
-            schema.addFieldInfo(fieldInfo);
-        }
-        {
-            FieldInfo fieldInfo = new FieldInfo("desc");
-            fieldInfo.setIndex(true);
-            fieldInfo.setStore(false);
-            fieldInfo.setType("text");
             schema.addFieldInfo(fieldInfo);
         }
         {
@@ -70,33 +90,6 @@ public class ConcurrentReadWriterTest extends TestCase {
         Thread.sleep(10 * 60 * 1000);
         embedSearchServer.close();
     }
-
-
-    Thread writerThread = new Thread() {
-
-        private Random random = new Random(System.currentTimeMillis());
-
-        private int seq = 1;
-
-
-        @Override
-        public void run() {
-            while (true) {
-                int ran = random.nextInt(10);
-                InputDocument inputDocument = new InputDocument();
-                inputDocument.addField("name", "");
-                if (ran < 6) {
-                    // for new
-                } else if (ran < 9) {
-                    // 6,7,8 for new
-                } else {
-                    // 9 for delete
-                }
-
-                embedSearchServer.add(inputDocument);
-            }
-        }
-    };
 
     class ReaderThread extends Thread {
         @Override

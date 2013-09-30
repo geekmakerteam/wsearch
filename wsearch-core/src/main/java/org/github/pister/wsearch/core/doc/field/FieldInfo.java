@@ -30,7 +30,7 @@ public class FieldInfo implements Serializable {
         this.name = name;
     }
 
-    public Fieldable createField(String value) {
+    public Fieldable createField(Object value) {
         return type.createField(this, value);
     }
 

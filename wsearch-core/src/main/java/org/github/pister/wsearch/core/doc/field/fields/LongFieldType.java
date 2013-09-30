@@ -10,8 +10,12 @@ import org.apache.lucene.search.SortField;
  */
 public class LongFieldType extends AbstractNumericFieldType {
     @Override
-    protected void setValue(NumericField numericField, String value) {
-        numericField.setLongValue(Long.parseLong(value));
+    protected void setValue(NumericField numericField, Object value) {
+        if (value instanceof Number) {
+            numericField.setLongValue(((Number)value).longValue());
+        } else {
+            numericField.setLongValue(Long.parseLong(value.toString()));
+        }
     }
 
     @Override

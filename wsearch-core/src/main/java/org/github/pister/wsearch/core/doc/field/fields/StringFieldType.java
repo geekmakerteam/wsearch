@@ -13,9 +13,15 @@ import org.github.pister.wsearch.core.doc.field.FieldInfo;
 public class StringFieldType extends AbstractFieldType {
 
     @Override
-    public Fieldable createField(FieldInfo fieldInfo, String value) {
+    public Fieldable createField(FieldInfo fieldInfo, Object value) {
         Field.Store store = getStore(fieldInfo);
-        Field field = new Field(fieldInfo.getName(), value, store, getIndex(fieldInfo), fieldInfo.getTermVector());
+        String s;
+        if (value != null) {
+             s = value.toString();
+        } else {
+            s = null;
+        }
+        Field field = new Field(fieldInfo.getName(), s, store, getIndex(fieldInfo), fieldInfo.getTermVector());
         return field;
     }
 

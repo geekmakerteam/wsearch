@@ -10,7 +10,7 @@ import org.github.pister.wsearch.core.doc.field.FieldInfo;
  */
 public interface FieldType {
 
-    Fieldable createField(FieldInfo fieldInfo, String value);
+    Fieldable createField(FieldInfo fieldInfo, Object value);
 
     Object getValue(Fieldable fieldable);
 

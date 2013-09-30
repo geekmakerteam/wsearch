@@ -12,17 +12,20 @@ import org.github.pister.wsearch.core.doc.field.FieldInfo;
 public abstract class AbstractNumericFieldType extends AbstractFieldType {
 
     @Override
-    public Fieldable createField(FieldInfo fieldInfo, String value) {
+    public Fieldable createField(FieldInfo fieldInfo, Object value) {
         NumericField numericField = new NumericField(fieldInfo.getName(), fieldInfo.getPrecisionStep(), getStore(fieldInfo), fieldInfo.isIndex());
-        setValue(numericField, value);
+        if (value != null) {
+            setValue(numericField, value);
+        }
         return numericField;
     }
+
 
     public Object getValue(Fieldable fieldable) {
         return getValue(((NumericField) fieldable));
     }
 
-    protected abstract void setValue(NumericField numericField, String value);
+    protected abstract void setValue(NumericField numericField, Object value);
 
     protected abstract Object getValue(NumericField numericField);
 

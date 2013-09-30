@@ -37,8 +37,15 @@ public class DateFieldType extends AbstractNumericFieldType {
         return SortField.LONG;
     }
 
+
     @Override
-    protected void setValue(NumericField numericField, String value) {
-        numericField.setLongValue(parseDate(value));
+    protected void setValue(NumericField numericField, Object value) {
+        if (value instanceof Date) {
+            numericField.setLongValue(((Date)value).getTime());
+        } else if (value instanceof Number) {
+            numericField.setLongValue(((Number)value).longValue());
+        } else {
+            numericField.setLongValue(parseDate(value.toString()));
+        }
     }
 }

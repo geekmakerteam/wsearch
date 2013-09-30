@@ -11,8 +11,12 @@ import org.apache.lucene.search.SortField;
 public class IntFieldType extends AbstractNumericFieldType {
 
     @Override
-    protected void setValue(NumericField numericField, String value) {
-        numericField.setIntValue(Integer.parseInt(value));
+    protected void setValue(NumericField numericField, Object value) {
+        if (value instanceof Number) {
+            numericField.setIntValue(((Number) value).intValue());
+        } else {
+            numericField.setIntValue(Integer.parseInt(value.toString()));
+        }
     }
 
     @Override

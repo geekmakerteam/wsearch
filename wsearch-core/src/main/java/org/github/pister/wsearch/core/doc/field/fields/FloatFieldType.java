@@ -10,8 +10,12 @@ import org.apache.lucene.search.SortField;
  */
 public class FloatFieldType extends AbstractNumericFieldType {
     @Override
-    protected void setValue(NumericField numericField, String value) {
-        numericField.setFloatValue(Float.parseFloat(value));
+    protected void setValue(NumericField numericField, Object value) {
+        if (value instanceof Number) {
+            numericField.setFloatValue(((Number) value).floatValue());
+        } else {
+            numericField.setFloatValue(Float.parseFloat(value.toString()));
+        }
     }
 
     @Override

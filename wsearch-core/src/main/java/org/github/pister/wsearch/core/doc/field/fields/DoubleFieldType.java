@@ -10,8 +10,12 @@ import org.apache.lucene.search.SortField;
  */
 public class DoubleFieldType extends AbstractNumericFieldType {
     @Override
-    protected void setValue(NumericField numericField, String value) {
-        numericField.setDoubleValue(Double.parseDouble(value));
+    protected void setValue(NumericField numericField, Object value) {
+        if (value instanceof Number) {
+            numericField.setDoubleValue(((Number) value).doubleValue());
+        } else {
+            numericField.setDoubleValue(Double.parseDouble(value.toString()));
+        }
     }
 
     @Override

@@ -80,17 +80,17 @@ public class EmbedSearchServerTest extends TestCase {
             inputDocument.addField("age", "32");
             inputDocument.addField("addr", "hangzhou");
             inputDocument.addField("desc", "i am has the biggest header in my family");
-            inputDocument.addField("update_date", DateFormatter.formatDateYMDHMS(new Date()));
+            inputDocument.addField("update_date", new Date());
             embedSearchServer.add(inputDocument);
         }
         {
             InputDocument inputDocument = new InputDocument();
-            inputDocument.addField("id", "2");
+            inputDocument.addField("id", 2);
             inputDocument.addField("name", "jack");
-            inputDocument.addField("age", "48");
+            inputDocument.addField("age", 48);
             inputDocument.addField("addr", "hangzhou");
             inputDocument.addField("desc", "aha, i ma jack");
-            inputDocument.addField("update_date", DateFormatter.formatDateYMDHMS(new Date()));
+            inputDocument.addField("update_date", new Date());
             embedSearchServer.add(inputDocument);
         }
     }
@@ -109,7 +109,7 @@ public class EmbedSearchServerTest extends TestCase {
         try {
             addDocument(embedSearchServer);
             SearchQuery searchQuery = new SearchQuery();
-            searchQuery.setQuery("desc:jack");
+            searchQuery.setQuery("desc:family");
             QueryResponse queryResponse = embedSearchServer.query(searchQuery);
             System.out.println(queryResponse.isSuccess());
             System.out.println(queryResponse.getTotalHits());

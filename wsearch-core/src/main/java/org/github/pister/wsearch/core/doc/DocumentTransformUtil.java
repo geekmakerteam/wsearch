@@ -42,13 +42,13 @@ public class DocumentTransformUtil {
     public static Document toLuceneDocument(InputDocument inputDocument, Schema schema) {
         Map<String, FieldInfo> fieldInfoMap = schema.getFieldInfos();
         Document document = new Document();
-        for (Map.Entry<String, String> entry : inputDocument.getFields().entrySet()) {
+        for (Map.Entry<String, Object> entry : inputDocument.getFields().entrySet()) {
             document.add(createField(entry.getKey(), entry.getValue(), fieldInfoMap));
         }
         return document;
     }
 
-    private static Fieldable createField(String name, String value, Map<String, FieldInfo> fieldInfoMap) {
+    private static Fieldable createField(String name, Object value, Map<String, FieldInfo> fieldInfoMap) {
         FieldInfo fieldInfo = fieldInfoMap.get(name);
         if (fieldInfo == null) {
             throw new RuntimeException("field " + name + " not config!");

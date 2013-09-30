@@ -13,17 +13,13 @@ public class InputDocument implements Serializable {
 
     private static final long serialVersionUID = -7666686778357266085L;
 
-    private Map<String, String> fields = new HashMap<String, String>();
+    private Map<String, Object> fields = new HashMap<String, Object>();
 
-    public Map<String, String> getFields() {
+    public Map<String, Object> getFields() {
         return fields;
     }
 
-    public void addField(String name, String value) {
+    public void addField(String name, Object value) {
         fields.put(name, value);
-    }
-
-    public void setFields(Map<String, String> fields) {
-        this.fields = fields;
     }
 }
