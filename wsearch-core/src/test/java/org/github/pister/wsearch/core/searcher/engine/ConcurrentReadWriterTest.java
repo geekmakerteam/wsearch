@@ -1,4 +1,4 @@
-package org.github.pister.wsearch.core.searcher.servers;
+package org.github.pister.wsearch.core.searcher.engine;
 
 import junit.framework.TestCase;
 import org.github.pister.wsearch.core.doc.InputDocument;
@@ -77,7 +77,7 @@ public class ConcurrentReadWriterTest extends TestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        String schemaPath = "/Users/longyi/temp/concurrent_test";
+        String schemaPath = "/Users/longyi/temp/concurrent_test1";
         SchemaMeta schemaMeta = new FileSchemaMeta(schemaPath);
         Schema schema = new Schema(schemaMeta);
         {
@@ -99,10 +99,10 @@ public class ConcurrentReadWriterTest extends TestCase {
             fieldInfo.setType("date");
             schema.addFieldInfo(fieldInfo);
         }
-        DefaultSearchEngine embedSearchServer = new DefaultSearchEngine(schema);
-        embedSearchServer.init();
+        DefaultSearchEngine searchEngine = new DefaultSearchEngine(schema);
 
-        this.embedSearchServer = embedSearchServer;
+        searchEngine.startAutoReopen();
+        this.embedSearchServer = searchEngine;
     }
 
     public void testConcurrent() throws InterruptedException {

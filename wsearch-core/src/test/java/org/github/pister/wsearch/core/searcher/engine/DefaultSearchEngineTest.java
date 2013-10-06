@@ -1,4 +1,4 @@
-package org.github.pister.wsearch.core.searcher.servers;
+package org.github.pister.wsearch.core.searcher.engine;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -25,21 +25,21 @@ import java.util.List;
 public class DefaultSearchEngineTest extends TestCase {
 
     public void testInit() {
-        DefaultSearchEngine embedSearchServer = initEmbedSearchServer("hello");
+        DefaultSearchEngine embedSearchServer = initSearchEngine("hello");
         embedSearchServer.close();
     }
 
-    private DefaultSearchEngine initEmbedSearchServer(String name) {
+    private DefaultSearchEngine initSearchEngine(String name) {
         String schemaPath = "/Users/longyi/temp/" + name;
         SchemaMeta schemaMeta = new FileSchemaMeta(schemaPath);
-        return initEmbedSearchServer(schemaMeta);
+        return initSearchEngine(schemaMeta);
     }
 
-    private DefaultSearchEngine initEmbedSearchServer() {
-        return initEmbedSearchServer(new RAMSchemaMeta());
+    private DefaultSearchEngine initSearchEngine() {
+        return initSearchEngine(new RAMSchemaMeta());
     }
 
-    private DefaultSearchEngine initEmbedSearchServer(SchemaMeta schemaMeta) {
+    private DefaultSearchEngine initSearchEngine(SchemaMeta schemaMeta) {
         Schema schema = new Schema(schemaMeta);
         {
             FieldInfo fieldInfo = new FieldInfo("id");
@@ -81,7 +81,6 @@ public class DefaultSearchEngineTest extends TestCase {
             schema.addFieldInfo(fieldInfo);
         }
         DefaultSearchEngine embedSearchServer = new DefaultSearchEngine(schema);
-        embedSearchServer.init();
         return embedSearchServer;
 
     }
@@ -110,23 +109,23 @@ public class DefaultSearchEngineTest extends TestCase {
     }
 
     public void testAdd() {
-        DefaultSearchEngine embedSearchServer = initEmbedSearchServer("hello");
+        DefaultSearchEngine searchEngine = initSearchEngine("hello");
         try {
-            addDocument(embedSearchServer);
+            addDocument(searchEngine);
         } finally {
-            embedSearchServer.close();
+            searchEngine.close();
         }
     }
 
     public void testForSort() {
-        DefaultSearchEngine embedSearchServer = initEmbedSearchServer();
+        DefaultSearchEngine searchEngine = initSearchEngine();
         {
             InputDocument inputDocument = new InputDocument();
             inputDocument.addField("id", 1);
             inputDocument.addField("name", "jack");
             inputDocument.addField("age", 10);
             inputDocument.addField("update_date", new Date());
-            embedSearchServer.add(inputDocument);
+            searchEngine.add(inputDocument);
         }
         {
             InputDocument inputDocument = new InputDocument();
@@ -134,7 +133,7 @@ public class DefaultSearchEngineTest extends TestCase {
             inputDocument.addField("name", "pister");
             inputDocument.addField("age", 20);
             inputDocument.addField("update_date", new Date());
-            embedSearchServer.add(inputDocument);
+            searchEngine.add(inputDocument);
         }
         {
             InputDocument inputDocument = new InputDocument();
@@ -142,14 +141,14 @@ public class DefaultSearchEngineTest extends TestCase {
             inputDocument.addField("name", "ally");
             inputDocument.addField("age", 5);
             inputDocument.addField("update_date", new Date());
-            embedSearchServer.add(inputDocument);
+            searchEngine.add(inputDocument);
         }
-        embedSearchServer.commit();
+        searchEngine.commit();
         {
             SearchQuery searchQuery = new SearchQuery();
             searchQuery.setQuery("*:*");
             searchQuery.setFieldSorts(Arrays.asList(new FieldSort("age", FieldSort.ASC)));
-            QueryResponse queryResponse = embedSearchServer.query(searchQuery);
+            QueryResponse queryResponse = searchEngine.query(searchQuery);
             Assert.assertEquals(3, queryResponse.getTotalHits());
             List<OutputDocument> outputDocuments = queryResponse.getOutputDocuments();
             Assert.assertEquals(3, outputDocuments.size());
@@ -160,7 +159,7 @@ public class DefaultSearchEngineTest extends TestCase {
     }
 
     public void testForPage() {
-        DefaultSearchEngine embedSearchServer = initEmbedSearchServer();
+        DefaultSearchEngine searchEngine = initSearchEngine();
         final int total = 500;
         for (int i = 1; i <= 500; i++) {
             InputDocument inputDocument = new InputDocument();
@@ -170,15 +169,15 @@ public class DefaultSearchEngineTest extends TestCase {
             inputDocument.addField("addr", "hangzhou" + i);
             inputDocument.addField("desc", "aha, i ma jack " + i);
             inputDocument.addField("update_date", new Date());
-            embedSearchServer.add(inputDocument);
+            searchEngine.add(inputDocument);
         }
-        embedSearchServer.commit();
+        searchEngine.commit();
         int pageSize = 20;
         SearchQuery searchQuery = new SearchQuery();
         searchQuery.setPageNo(1);
         searchQuery.setPageSize(pageSize);
         searchQuery.setQuery("*:*");
-        QueryResponse queryResponse = embedSearchServer.query(searchQuery);
+        QueryResponse queryResponse = searchEngine.query(searchQuery);
         int hits = queryResponse.getTotalHits();
         Assert.assertEquals(total, hits);
         assertResults(queryResponse.getOutputDocuments(), 1, pageSize);
@@ -188,13 +187,13 @@ public class DefaultSearchEngineTest extends TestCase {
             query.setPageNo(pageNo);
             query.setPageSize(pageSize);
             query.setQuery("*:*");
-            QueryResponse response = embedSearchServer.query(query);
+            QueryResponse response = searchEngine.query(query);
             Assert.assertEquals(total, response.getTotalHits());
             assertResults(response.getOutputDocuments(), pageNo, pageSize);
-            System.out.println("pageNo " + pageNo + " test finsh!");
+            System.out.println("pageNo " + pageNo + " test finish!");
         }
 
-        embedSearchServer.close();
+        searchEngine.close();
     }
 
     private void assertResults(List<OutputDocument> outputDocuments, int pageNo, int pageSize) {
@@ -207,19 +206,19 @@ public class DefaultSearchEngineTest extends TestCase {
     }
 
     public void testQuery() {
-        DefaultSearchEngine embedSearchServer = initEmbedSearchServer("hello");
+        DefaultSearchEngine searchEngine = initSearchEngine("hello");
         try {
-            embedSearchServer.deleteById("1");
+            searchEngine.deleteById("1");
             SearchQuery searchQuery = new SearchQuery();
             searchQuery.setQuery("*:*");
-            QueryResponse queryResponse = embedSearchServer.query(searchQuery);
+            QueryResponse queryResponse = searchEngine.query(searchQuery);
             System.out.println(queryResponse.isSuccess());
             System.out.println(queryResponse.getTotalHits());
             for (OutputDocument outputDocument : queryResponse.getOutputDocuments()) {
                 System.out.println(outputDocument.getFields());
             }
         } finally {
-            embedSearchServer.close();
+            searchEngine.close();
         }
     }
 }

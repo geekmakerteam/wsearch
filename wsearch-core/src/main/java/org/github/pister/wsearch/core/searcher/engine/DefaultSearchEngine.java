@@ -1,4 +1,4 @@
-package org.github.pister.wsearch.core.searcher.servers;
+package org.github.pister.wsearch.core.searcher.engine;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
@@ -102,9 +102,10 @@ public class DefaultSearchEngine implements SearchEngine {
 
     public DefaultSearchEngine(Schema schema) {
         this.schema = schema;
+        init();
     }
 
-    public void init() {
+    private void init() {
         if (!inited.compareAndSet(false, true)) {
             return;
         }
@@ -112,10 +113,14 @@ public class DefaultSearchEngine implements SearchEngine {
             directory = schema.getSchemaMeta().openDirectory();
             open(directory);
             opened.set(true);
-            reopenThread.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void startAutoReopen() {
+        reopenThread.start();
     }
 
     protected void open(Directory directory) throws IOException {
@@ -377,6 +382,11 @@ public class DefaultSearchEngine implements SearchEngine {
         return sort;
     }
 
+    private Filter getFilter(SearchQuery searchQuery) {
+
+        return null;
+    }
+
     @Override
     public QueryResponse query(SearchQuery searchQuery) {
         try {
@@ -385,13 +395,12 @@ public class DefaultSearchEngine implements SearchEngine {
             }
             QueryParser queryParser = new QueryParser(LuceneConfig.LUCENE_VERSION, schema.getDefaultSearchField(), schema.getAnalyzer());
             Query query = queryParser.parse(searchQuery.getQuery());
-            Filter filter = null;
             int pageNo = searchQuery.getPageNo();
             int pageSize = searchQuery.getPageSize();
             int fullPageCount = pageNo * pageSize;
             int pageStartIndex = pageNo < 1 ? 0 : ((pageNo - 1) * pageSize);
             Sort sort = getSort(searchQuery);
-            // TODO
+            Filter filter = getFilter(searchQuery);
             TopFieldDocs topFieldDocs = indexSearcher.search(query, filter, fullPageCount, sort);
             ScoreDoc[] scoreDocs = topFieldDocs.scoreDocs;
             int scoreDocsLength = scoreDocs.length;

@@ -18,6 +18,8 @@ import java.util.List;
  */
 public interface SearchEngine {
 
+    void startAutoReopen();
+
     AddResponse add(InputDocument inputDocument);
 
     AddResponse add(Collection<InputDocument> inputDocument);
