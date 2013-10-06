@@ -72,7 +72,7 @@ public class ConcurrentReadWriterTest extends TestCase {
             }
         }
     };
-    private EmbedSearchServer embedSearchServer;
+    private DefaultSearchEngine embedSearchServer;
 
     @Override
     public void setUp() throws Exception {
@@ -99,7 +99,7 @@ public class ConcurrentReadWriterTest extends TestCase {
             fieldInfo.setType("date");
             schema.addFieldInfo(fieldInfo);
         }
-        EmbedSearchServer embedSearchServer = new EmbedSearchServer(schema);
+        DefaultSearchEngine embedSearchServer = new DefaultSearchEngine(schema);
         embedSearchServer.init();
 
         this.embedSearchServer = embedSearchServer;

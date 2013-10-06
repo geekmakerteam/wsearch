@@ -20,14 +20,13 @@ import org.github.pister.wsearch.core.doc.field.FieldInfo;
 import org.github.pister.wsearch.core.log.Logger;
 import org.github.pister.wsearch.core.log.LoggerFactory;
 import org.github.pister.wsearch.core.schema.Schema;
-import org.github.pister.wsearch.core.searcher.SearchServer;
+import org.github.pister.wsearch.core.searcher.SearchEngine;
 import org.github.pister.wsearch.core.searcher.query.FieldSort;
 import org.github.pister.wsearch.core.searcher.query.OutputDocument;
 import org.github.pister.wsearch.core.searcher.query.SearchQuery;
 import org.github.pister.wsearch.core.searcher.response.AddResponse;
 import org.github.pister.wsearch.core.searcher.response.DeleteResponse;
 import org.github.pister.wsearch.core.searcher.response.OperationResponse;
-import org.github.pister.wsearch.core.searcher.response.PongResponse;
 import org.github.pister.wsearch.core.searcher.response.QueryResponse;
 import org.github.pister.wsearch.core.searcher.response.ResultCodes;
 import org.github.pister.wsearch.core.util.CloseUtil;
@@ -50,9 +49,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * Date: 13-9-29
  * Time: 上午11:29
  */
-public class EmbedSearchServer implements SearchServer {
+public class DefaultSearchEngine implements SearchEngine {
 
-    private static final Logger logger = LoggerFactory.getLogger(EmbedSearchServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultSearchEngine.class);
     private final int REOPEN_MIN_COUNT = 1000;
     private final int REOPEN_WAIT_TIMEOUT = 10;
     private Schema schema;
@@ -101,7 +100,7 @@ public class EmbedSearchServer implements SearchServer {
         }
     };
 
-    public EmbedSearchServer(Schema schema) {
+    public DefaultSearchEngine(Schema schema) {
         this.schema = schema;
     }
 
@@ -354,11 +353,6 @@ public class EmbedSearchServer implements SearchServer {
     @Override
     public DeleteResponse deleteById(String id) {
         return deleteByIds(Arrays.asList(id));
-    }
-
-    @Override
-    public PongResponse ping() {
-        return new PongResponse();
     }
 
     private Sort getSort(SearchQuery searchQuery) {

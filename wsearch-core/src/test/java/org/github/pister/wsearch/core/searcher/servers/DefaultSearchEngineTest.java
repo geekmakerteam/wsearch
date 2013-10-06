@@ -22,24 +22,24 @@ import java.util.List;
  * Date: 13-9-30
  * Time: 上午10:18
  */
-public class EmbedSearchServerTest extends TestCase {
+public class DefaultSearchEngineTest extends TestCase {
 
     public void testInit() {
-        EmbedSearchServer embedSearchServer = initEmbedSearchServer("hello");
+        DefaultSearchEngine embedSearchServer = initEmbedSearchServer("hello");
         embedSearchServer.close();
     }
 
-    private EmbedSearchServer initEmbedSearchServer(String name) {
+    private DefaultSearchEngine initEmbedSearchServer(String name) {
         String schemaPath = "/Users/longyi/temp/" + name;
         SchemaMeta schemaMeta = new FileSchemaMeta(schemaPath);
         return initEmbedSearchServer(schemaMeta);
     }
 
-    private EmbedSearchServer initEmbedSearchServer() {
+    private DefaultSearchEngine initEmbedSearchServer() {
         return initEmbedSearchServer(new RAMSchemaMeta());
     }
 
-    private EmbedSearchServer initEmbedSearchServer(SchemaMeta schemaMeta) {
+    private DefaultSearchEngine initEmbedSearchServer(SchemaMeta schemaMeta) {
         Schema schema = new Schema(schemaMeta);
         {
             FieldInfo fieldInfo = new FieldInfo("id");
@@ -80,13 +80,13 @@ public class EmbedSearchServerTest extends TestCase {
             fieldInfo.setType("date");
             schema.addFieldInfo(fieldInfo);
         }
-        EmbedSearchServer embedSearchServer = new EmbedSearchServer(schema);
+        DefaultSearchEngine embedSearchServer = new DefaultSearchEngine(schema);
         embedSearchServer.init();
         return embedSearchServer;
 
     }
 
-    private void addDocument(EmbedSearchServer embedSearchServer) {
+    private void addDocument(DefaultSearchEngine embedSearchServer) {
         {
             InputDocument inputDocument = new InputDocument();
             inputDocument.addField("id", "1");
@@ -110,7 +110,7 @@ public class EmbedSearchServerTest extends TestCase {
     }
 
     public void testAdd() {
-        EmbedSearchServer embedSearchServer = initEmbedSearchServer("hello");
+        DefaultSearchEngine embedSearchServer = initEmbedSearchServer("hello");
         try {
             addDocument(embedSearchServer);
         } finally {
@@ -119,7 +119,7 @@ public class EmbedSearchServerTest extends TestCase {
     }
 
     public void testForSort() {
-        EmbedSearchServer embedSearchServer = initEmbedSearchServer();
+        DefaultSearchEngine embedSearchServer = initEmbedSearchServer();
         {
             InputDocument inputDocument = new InputDocument();
             inputDocument.addField("id", 1);
@@ -160,7 +160,7 @@ public class EmbedSearchServerTest extends TestCase {
     }
 
     public void testForPage() {
-        EmbedSearchServer embedSearchServer = initEmbedSearchServer();
+        DefaultSearchEngine embedSearchServer = initEmbedSearchServer();
         final int total = 500;
         for (int i = 1; i <= 500; i++) {
             InputDocument inputDocument = new InputDocument();
@@ -207,7 +207,7 @@ public class EmbedSearchServerTest extends TestCase {
     }
 
     public void testQuery() {
-        EmbedSearchServer embedSearchServer = initEmbedSearchServer("hello");
+        DefaultSearchEngine embedSearchServer = initEmbedSearchServer("hello");
         try {
             embedSearchServer.deleteById("1");
             SearchQuery searchQuery = new SearchQuery();

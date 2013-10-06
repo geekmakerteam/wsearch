@@ -16,7 +16,7 @@ import java.util.List;
  * Date: 13-9-29
  * Time: 上午10:49
  */
-public interface SearchServer {
+public interface SearchEngine {
 
     AddResponse add(InputDocument inputDocument);
 
@@ -33,8 +33,6 @@ public interface SearchServer {
     DeleteResponse deleteByIds(List<String> ids);
 
     DeleteResponse deleteById(String id);
-
-    PongResponse ping();
 
     QueryResponse query(SearchQuery searchQuery);
 
