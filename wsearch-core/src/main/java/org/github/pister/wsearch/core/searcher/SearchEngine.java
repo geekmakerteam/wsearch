@@ -7,6 +7,7 @@ import org.github.pister.wsearch.core.searcher.response.DeleteResponse;
 import org.github.pister.wsearch.core.searcher.response.OperationResponse;
 import org.github.pister.wsearch.core.searcher.response.PongResponse;
 import org.github.pister.wsearch.core.searcher.response.QueryResponse;
+import org.github.pister.wsearch.core.searcher.response.Response;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public interface SearchEngine {
 
-    void startAutoReopen();
+    OperationResponse reopen();
 
     AddResponse add(InputDocument inputDocument);
 

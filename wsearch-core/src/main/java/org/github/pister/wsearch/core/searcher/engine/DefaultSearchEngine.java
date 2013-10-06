@@ -52,8 +52,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultSearchEngine implements SearchEngine {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSearchEngine.class);
-    private final int REOPEN_MIN_COUNT = 1000;
-    private final int REOPEN_WAIT_TIMEOUT = 10;
     private Schema schema;
     private volatile IndexWriter indexWriter;
     private volatile IndexSearcher indexSearcher;
@@ -64,41 +62,6 @@ public class DefaultSearchEngine implements SearchEngine {
     private AtomicInteger updateCount = new AtomicInteger(0);
     private Lock reopenLock = new ReentrantLock();
     private Condition reopenCondition = reopenLock.newCondition();
-    private Thread reopenThread = new Thread() {
-        @Override
-        public void run() {
-            logger.info("reopen job thread has running.");
-            while (opened.get()) {
-                try {
-                    if (needReopen()) {
-                        reopenSearcher();
-                    }
-                } catch (IOException e) {
-                    logger.error("proccess reopen error", e);
-                }
-            }
-        }
-
-        private boolean needReopen() {
-            try {
-                reopenLock.lock();
-                boolean timeout = reopenCondition.await(REOPEN_WAIT_TIMEOUT, TimeUnit.SECONDS);
-                if (!timeout) {
-                    logger.info("need reopen for timeout.");
-                    return true;
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                reopenLock.unlock();
-            }
-            if (updateCount.get() > REOPEN_MIN_COUNT) {
-                logger.info("need reopen for count.");
-                return true;
-            }
-            return false;
-        }
-    };
 
     public DefaultSearchEngine(Schema schema) {
         this.schema = schema;
@@ -116,11 +79,6 @@ public class DefaultSearchEngine implements SearchEngine {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public void startAutoReopen() {
-        reopenThread.start();
     }
 
     protected void open(Directory directory) throws IOException {
@@ -176,6 +134,17 @@ public class DefaultSearchEngine implements SearchEngine {
         } finally {
             reopenLock.unlock();
         }
+    }
+
+    @Override
+    public OperationResponse reopen() {
+        try {
+            reopenSearcher();
+        } catch (IOException e) {
+            logger.error("repen error", e);
+            return new OperationResponse(e.getMessage(), ResultCodes.COMMON_ERROR);
+        }
+        return new OperationResponse();
     }
 
     public void close() {
