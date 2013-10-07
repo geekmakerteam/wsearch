@@ -36,6 +36,21 @@ public class DelayTimeSchedulerTest extends TestCase {
 
     }
 
+    public void testClose() throws InterruptedException {
+        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10, new RamTimeRangeService());
+
+        DataProvider dataProvider = new DataProviderFoo();
+
+        delayTimeScheduler.startSchedule(dataProvider, searchEngine);
+
+
+        Thread.sleep(11000);
+        System.out.println("==============waiting==============");
+        delayTimeScheduler.waitForClose(20000);
+        System.out.println("==============done!!==============");
+
+    }
+
     public void testDump() throws InterruptedException {
         DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10, new FileTimeRangeService("/Users/longyi/temp/inc_date1"));
 

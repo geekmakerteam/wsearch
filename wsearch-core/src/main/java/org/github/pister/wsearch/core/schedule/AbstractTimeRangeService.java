@@ -11,27 +11,22 @@ import java.util.Date;
  */
 public abstract class AbstractTimeRangeService implements TimeRangeService {
 
-    protected abstract void storeTimeRange(TimeRange timeRange);
+    protected abstract void storeLastTime(Date timeRange);
 
-    protected abstract TimeRange loadTimeRange();
+    protected abstract Date loadLastTime();
 
     private int rangeStepSeconds = 60;
 
     @Override
     public TimeRange getTimeRange() {
-        return loadTimeRange();
+        Date date = loadLastTime();
+        return new TimeRange(date, new Date());
     }
 
     @Override
-    public void nextTimeRange() {
-        TimeRange oldTimeRange = getTimeRange();
-        TimeRange newTimeRange = new TimeRange();
-
-        Date newStartDate = new Date(oldTimeRange.getEnd().getTime());
-        newTimeRange.setStart(newStartDate);
-        newTimeRange.setEnd(DateUtil.addSeconds(newStartDate, rangeStepSeconds));
-
-        storeTimeRange(newTimeRange);
+    public void saveTimeRange(TimeRange timeRange) {
+        Date oldTime = timeRange.getEnd();
+        storeLastTime(oldTime);
     }
 
     @Override

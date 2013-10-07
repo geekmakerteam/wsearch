@@ -13,22 +13,12 @@ public abstract class StringStoreTimeRangeService extends AbstractTimeRangeServi
 
     private static final String DATE_FMT = "yyyy-MM-dd HH:mm:ss";
 
-    protected TimeRange decode(String data) {
-        String[] parts = data.split("/");
-        if (parts.length < 2) {
-            throw new RuntimeException("error format string data:" + data + ", expect: " + DATE_FMT + "/" + DATE_FMT);
-        }
-        Date startDate = DateUtil.parseDate(parts[0], DATE_FMT);
-        Date endDate = DateUtil.parseDate(parts[1], DATE_FMT);
-        return new TimeRange(startDate, endDate);
+    protected Date decode(String data) {
+        return DateUtil.parseDate(data, DATE_FMT);
     }
 
-    protected String encode(TimeRange timeRange) {
-        Date start = timeRange.getStart();
-        Date end = timeRange.getEnd();
-        String s1 = DateUtil.formatDate(start, DATE_FMT);
-        String s2 = DateUtil.formatDate(end, DATE_FMT);
-        return s1 + "/" + s2;
+    protected String encode(Date date) {
+        return DateUtil.formatDate(date, DATE_FMT);
     }
 
     protected abstract void store(String content);
@@ -36,17 +26,16 @@ public abstract class StringStoreTimeRangeService extends AbstractTimeRangeServi
     protected abstract String load();
 
     @Override
-    protected final void storeTimeRange(TimeRange timeRange) {
+    protected final void storeLastTime(Date timeRange) {
         store(encode(timeRange));
     }
 
     @Override
-    protected final TimeRange loadTimeRange() {
+    protected final Date loadLastTime() {
         String data = load();
         if (data == null) {
             TimeRange defaultValue = this.getDefaultTimeRange();
-            storeTimeRange(defaultValue);
-            return defaultValue;
+            return defaultValue.getStart();
         }
         return decode(data);
     }

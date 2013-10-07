@@ -2,6 +2,7 @@ package org.github.pister.wsearch.core.schedule;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -12,8 +13,8 @@ import java.util.concurrent.TimeUnit;
 public class DelayTimeScheduler extends IncrIndexDumpScheduler {
 
     private int delayInSeconds;
-
     private TimeRangeService timeRangeService;
+    private ScheduledFuture<?> scheduledFuture;
 
     public DelayTimeScheduler(int delayInSeconds, TimeRangeService timeRangeService) {
         this.delayInSeconds = delayInSeconds;
@@ -27,13 +28,21 @@ public class DelayTimeScheduler extends IncrIndexDumpScheduler {
     }
 
     @Override
+    protected void onCancel() {
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+            scheduledFuture = null;
+        }
+    }
+
+    @Override
     protected Trigger getTrigger() {
         return new Trigger() {
             ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
             @Override
             public void submit(Runnable runnable) {
-                scheduledExecutorService.scheduleWithFixedDelay(runnable, 0, delayInSeconds, TimeUnit.SECONDS);
+                scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(runnable, 0, delayInSeconds, TimeUnit.SECONDS);
             }
 
 

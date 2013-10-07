@@ -10,19 +10,23 @@ import org.github.pister.wsearch.core.searcher.SearchEngine;
  */
 public abstract class IncrIndexDumpScheduler extends AbstractIndexDumpScheduler {
 
+    private static final String TIME_RANGE_NAME = "time_range_name";
+
     @Override
-    protected void onBeforeDump(DataProvider dataProvider, SearchEngine searchEngine) {
-        super.onBeforeDump(dataProvider, searchEngine);
+    protected void onBeforeDump(DumpContext dumpContext) {
+        super.onBeforeDump(dumpContext);
+        DataProvider dataProvider = dumpContext.getDataProvider();
         TimeRange timeRange = getTimeRangeService().getTimeRange();
         if (dataProvider instanceof TimeRangeAwire) {
             ((TimeRangeAwire)dataProvider).setTimeRange(timeRange);
+            dumpContext.setAttribute(TIME_RANGE_NAME, timeRange);
         }
     }
 
     @Override
-    protected void onAfterDump(DataProvider dataProvider, SearchEngine searchEngine) {
-        super.onAfterDump(dataProvider, searchEngine);
-        getTimeRangeService().nextTimeRange();
+    protected void onAfterDump(DumpContext dumpContext) {
+        super.onAfterDump(dumpContext);
+        getTimeRangeService().saveTimeRange((TimeRange)dumpContext.getAttribute(TIME_RANGE_NAME));
     }
 
     protected abstract TimeRangeService getTimeRangeService();

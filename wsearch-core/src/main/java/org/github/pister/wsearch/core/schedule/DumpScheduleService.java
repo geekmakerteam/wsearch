@@ -1,0 +1,72 @@
+package org.github.pister.wsearch.core.schedule;
+
+import org.github.pister.wsearch.core.dataprovider.DataProvider;
+import org.github.pister.wsearch.core.searcher.SearchEngine;
+import org.github.pister.wsearch.core.util.ClassUtil;
+
+/**
+ * User: longyi
+ * Date: 13-10-7
+ * Time: 下午7:41
+ */
+public class DumpScheduleService {
+
+    private ScheduleInfo fulldumpScheduleInfo;
+    private ScheduleInfo incrdumpScheduleInfo;
+    private IndexDumpScheduler fullIndexDumpScheduler;
+    private IndexDumpScheduler incrIndexDumpScheduler;
+
+    public void registerFullDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine) {
+        fulldumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine);
+    }
+
+    public void registerIncrDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine) {
+        incrdumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine);
+    }
+
+    public void start() {
+        this.startFullSchedule();
+        this.startIncrSchedule();
+    }
+
+    public void startFullSchedule() {
+        if (fulldumpScheduleInfo != null) {
+            fullIndexDumpScheduler = startSchedule(fulldumpScheduleInfo);
+        }
+    }
+
+    public void startIncrSchedule() {
+        if (incrdumpScheduleInfo != null) {
+            incrIndexDumpScheduler = startSchedule(incrdumpScheduleInfo);
+        }
+    }
+
+    private IndexDumpScheduler startSchedule(ScheduleInfo scheduleInfo) {
+        IndexDumpScheduler ret = ClassUtil.newInstance(scheduleInfo.scheduleClass);
+        ret.setDumpScheduleService(this);
+        ret.startSchedule(scheduleInfo.dataProvider, scheduleInfo.searchEngine);
+        return ret;
+    }
+
+    public IndexDumpScheduler getFullIndexDumpScheduler() {
+        return fullIndexDumpScheduler;
+    }
+
+    public IndexDumpScheduler getIncrIndexDumpScheduler() {
+        return incrIndexDumpScheduler;
+    }
+
+    static class ScheduleInfo {
+        Class<? extends IndexDumpScheduler> scheduleClass;
+        DataProvider dataProvider;
+        SearchEngine searchEngine;
+
+        ScheduleInfo(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine) {
+            this.scheduleClass = scheduleClass;
+            this.dataProvider = dataProvider;
+            this.searchEngine = searchEngine;
+        }
+    }
+
+
+}

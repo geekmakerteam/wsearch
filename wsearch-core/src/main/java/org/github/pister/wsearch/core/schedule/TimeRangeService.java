@@ -9,7 +9,7 @@ public interface TimeRangeService {
 
     TimeRange getTimeRange();
 
-    void nextTimeRange();
+    void saveTimeRange(TimeRange timeRange);
 
     int getRangeStepSeconds();
 

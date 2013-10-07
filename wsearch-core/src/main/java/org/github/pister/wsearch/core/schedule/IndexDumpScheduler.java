@@ -12,4 +12,8 @@ public interface IndexDumpScheduler {
 
     void startSchedule(DataProvider dataProvider, SearchEngine searchEngine);
 
+    void waitForClose(int waitForSeconds) throws InterruptedException;
+
+    void setDumpScheduleService(DumpScheduleService dumpScheduleService);
+
 }
