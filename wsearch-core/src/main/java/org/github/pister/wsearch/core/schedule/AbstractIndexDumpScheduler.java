@@ -12,13 +12,20 @@ import org.github.pister.wsearch.core.searcher.SearchEngine;
  */
 public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
-    private Logger log = LoggerFactory.getLogger(AbstractIndexDumpScheduler.class);
+    private Logger log = LoggerFactory.getLogger(getClass());
+
+     private TimeRangeService timeRangeService;
 
     private int logPerSize = 1000;
 
     protected void dump(DataProvider dataProvider, SearchEngine searchEngine) {
         int count = 0;
         try {
+            onBeforeDump();
+            TimeRange timeRange = timeRangeService.nextTimeRange();
+            if (dataProvider instanceof TimeRangeAwire) {
+                ((TimeRangeAwire)dataProvider).setTimeRange(timeRange);
+            }
             dataProvider.init();
             onStartingDump();
             while (dataProvider.hasNext()) {
@@ -29,8 +36,8 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
                 }
             }
             searchEngine.commitAndOptimize();
+            timeRangeService.saveTimeRange(timeRange);
             onAfterDump();
-            onDumpSuccess();
         } catch (Throwable t) {
             log.error("dump error", t);
             try {
@@ -47,9 +54,21 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
     }
 
     @Override
-    public void startSchedule(DataProvider dataProvider, SearchEngine searchEngine) {
-        // TODO !
-        dump(dataProvider, searchEngine);
+    public void startSchedule(final DataProvider dataProvider, final SearchEngine searchEngine) {
+        this.getTrigger().submit(new Runnable() {
+            @Override
+            public void run() {
+                dump(dataProvider, searchEngine);
+
+            }
+        });
+    }
+
+    protected abstract Trigger getTrigger();
+
+
+    protected void onBeforeDump() {
+
     }
 
     protected void onStartingDump() {
@@ -60,9 +79,6 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
     }
 
-    protected void onDumpSuccess() {
-
-    }
 
     protected void onDumpError(Throwable t) {
 

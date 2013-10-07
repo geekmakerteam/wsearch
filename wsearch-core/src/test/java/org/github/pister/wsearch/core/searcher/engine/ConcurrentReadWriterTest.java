@@ -39,7 +39,7 @@ public class ConcurrentReadWriterTest extends TestCase {
                 InputDocument inputDocument = new InputDocument();
                 inputDocument.addField("id", id);
                 inputDocument.addField("update_date", new Date());
-                embedSearchServer.add(inputDocument);
+                searchEngine.add(inputDocument);
             }
             int loopCount = 0;
             while (true) {
@@ -51,17 +51,17 @@ public class ConcurrentReadWriterTest extends TestCase {
                     int id = randExistId();
                     inputDocument.addField("id", id);
                     inputDocument.addField("update_date", new Date());
-                    embedSearchServer.add(inputDocument);
+                    searchEngine.add(inputDocument);
                 } else if (ran < 9) {
                     // 6,7,8 for new
                     int id = getNextId();
                     inputDocument.addField("id", id);
                     inputDocument.addField("update_date", new Date());
-                    embedSearchServer.add(inputDocument);
+                    searchEngine.add(inputDocument);
                 } else {
                     // 9 for delete
                     int id = randExistId();
-                    embedSearchServer.deleteById(String.valueOf(id));
+                    searchEngine.deleteById(String.valueOf(id));
                 }
                 loopCount++;
                 try {
@@ -72,7 +72,7 @@ public class ConcurrentReadWriterTest extends TestCase {
             }
         }
     };
-    private DefaultSearchEngine embedSearchServer;
+    private DefaultSearchEngine searchEngine;
 
     @Override
     public void setUp() throws Exception {
@@ -101,8 +101,7 @@ public class ConcurrentReadWriterTest extends TestCase {
         }
         DefaultSearchEngine searchEngine = new DefaultSearchEngine(schema);
 
-        searchEngine.startAutoReopen();
-        this.embedSearchServer = searchEngine;
+        this.searchEngine = searchEngine;
     }
 
     public void testConcurrent() throws InterruptedException {
@@ -116,7 +115,7 @@ public class ConcurrentReadWriterTest extends TestCase {
             // wait for finish
             Thread.sleep(1 * 60 * 1000);
         } finally {
-            embedSearchServer.close();
+            searchEngine.close();
         }
     }
 
@@ -126,7 +125,7 @@ public class ConcurrentReadWriterTest extends TestCase {
             while (true) {
                 SearchQuery searchQuery = new SearchQuery();
                 searchQuery.setQuery("*:*");
-                QueryResponse queryResponse = embedSearchServer.query(searchQuery);
+                QueryResponse queryResponse = searchEngine.query(searchQuery);
                 StringBuilder sb = new StringBuilder();
                 sb.append("total:");
                 sb.append(queryResponse.getTotalHits());
