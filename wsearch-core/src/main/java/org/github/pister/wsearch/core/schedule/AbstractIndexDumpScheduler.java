@@ -14,7 +14,6 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-
     private int logPerSize = 1000;
 
     protected void dump(DataProvider dataProvider, SearchEngine searchEngine) {

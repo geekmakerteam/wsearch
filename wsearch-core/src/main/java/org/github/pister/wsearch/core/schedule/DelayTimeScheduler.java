@@ -15,9 +15,10 @@ public class DelayTimeScheduler extends IncrIndexDumpScheduler {
 
     private TimeRangeService timeRangeService;
 
-    public DelayTimeScheduler(int delayInSeconds) {
+    public DelayTimeScheduler(int delayInSeconds, TimeRangeService timeRangeService) {
         this.delayInSeconds = delayInSeconds;
-        this.timeRangeService = new RamTimeRangeService(delayInSeconds);
+        this.timeRangeService = timeRangeService;
+        this.timeRangeService.setRangeStepSeconds(delayInSeconds);
     }
 
     @Override

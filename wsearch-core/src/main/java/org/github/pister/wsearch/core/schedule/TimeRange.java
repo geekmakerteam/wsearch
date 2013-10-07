@@ -1,5 +1,6 @@
 package org.github.pister.wsearch.core.schedule;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -7,11 +8,21 @@ import java.util.Date;
  * Date: 13-10-7
  * Time: 上午10:56
  */
-public class TimeRange {
+public class TimeRange implements Serializable {
+
+    private static final long serialVersionUID = 2624354235359018559L;
 
     private Date start;
 
     private Date end;
+
+    public TimeRange(Date start, Date end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    public TimeRange() {
+    }
 
     public Date getEnd() {
         return end;
@@ -32,8 +43,8 @@ public class TimeRange {
     @Override
     public String toString() {
         return "TimeRange{" +
-                "end=" + end +
-                ", start=" + start +
+                "start=" + start +
+                ", end=" + end +
                 '}';
     }
 }

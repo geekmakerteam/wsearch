@@ -37,7 +37,7 @@ public class DelayTimeSchedulerTest extends TestCase {
     }
 
     public void testDump() throws InterruptedException {
-        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10);
+        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10, new FileTimeRangeService("/Users/longyi/temp/inc_date1"));
 
         DataProvider dataProvider = new DataProviderFoo();
 
