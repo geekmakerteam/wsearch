@@ -14,7 +14,7 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-     private TimeRangeService timeRangeService;
+     private TimeRangeService timeRangeService = new NullTimeRangeService();
 
     private int logPerSize = 1000;
 
@@ -59,7 +59,6 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
             @Override
             public void run() {
                 dump(dataProvider, searchEngine);
-
             }
         });
     }

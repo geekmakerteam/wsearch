@@ -23,13 +23,33 @@ public class DelayTimeScheduler extends AbstractIndexDumpScheduler {
     @Override
     protected Trigger getTrigger() {
         return new Trigger() {
-
-            private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+            ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
             @Override
-            public void submit(final Runnable runnable) {
+            public void submit(Runnable runnable) {
                 scheduledExecutorService.scheduleWithFixedDelay(runnable, initialDelay, delay, TimeUnit.SECONDS);
             }
+
+
+/*
+            @Override
+            public void submit(final Runnable runnable) {
+                new Thread() {
+                    public void run() {
+                        try {
+                            Thread.sleep(initialDelay * 1000);
+                            while (true) {
+                               runnable.run();
+                               Thread.sleep(delay * 1000);
+                            }
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }.start();
+            }
+
+            */
         };
     }
 

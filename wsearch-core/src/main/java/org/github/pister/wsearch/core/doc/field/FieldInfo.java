@@ -38,32 +38,36 @@ public class FieldInfo implements Serializable {
         return boost;
     }
 
-    public void setBoost(Float boost) {
+    public FieldInfo setBoost(Float boost) {
         this.boost = boost;
+        return this;
     }
 
     public Field.TermVector getTermVector() {
         return termVector;
     }
 
-    public void setTermVector(Field.TermVector termVector) {
+    public FieldInfo setTermVector(Field.TermVector termVector) {
         this.termVector = termVector;
+        return this;
     }
 
     public boolean isNorms() {
         return norms;
     }
 
-    public void setNorms(boolean norms) {
+    public FieldInfo setNorms(boolean norms) {
         this.norms = norms;
+        return this;
     }
 
     public boolean isIndex() {
         return index;
     }
 
-    public void setIndex(boolean index) {
+    public FieldInfo setIndex(boolean index) {
         this.index = index;
+        return this;
     }
 
     public String getName() {
@@ -74,15 +78,16 @@ public class FieldInfo implements Serializable {
         return store;
     }
 
-    public void setStore(boolean store) {
+    public FieldInfo setStore(boolean store) {
         this.store = store;
+        return this;
     }
 
     public FieldType getFieldType() {
         return type;
     }
 
-    public void setType(String typeName) {
+    public FieldInfo setType(String typeName) {
         FieldType type = FieldTypeFactory.getFieldType(typeName);
         if (type != null) {
            this.type = type;
@@ -90,13 +95,15 @@ public class FieldInfo implements Serializable {
             FieldType fieldType = (FieldType) ClassUtil.newInstance(typeName);
             this.type = fieldType;
         }
+        return this;
     }
 
     public int getPrecisionStep() {
         return precisionStep;
     }
 
-    public void setPrecisionStep(int precisionStep) {
+    public FieldInfo setPrecisionStep(int precisionStep) {
         this.precisionStep = precisionStep;
+        return this;
     }
 }
