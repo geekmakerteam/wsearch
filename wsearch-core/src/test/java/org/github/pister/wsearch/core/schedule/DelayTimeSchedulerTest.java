@@ -37,65 +37,77 @@ public class DelayTimeSchedulerTest extends TestCase {
     }
 
     public void testDump() throws InterruptedException {
-        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(0, 10);
+        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10);
 
-        DataProvider dataProvider = new DataProvider() {
-
-            private List<Book> books;
-            private Iterator<Book> booksIterator;
-
-            @Override
-            public void init() {
-                books = Arrays.asList(
-                        new Book(1, "thinking in c++"),
-                        new Book(2, "流量的密码"),
-                        new Book(3, "精通css"),
-                        new Book(4, "effective c++"),
-                        new Book(5, "世界是平的"),
-                        new Book(6, "ajax in action"),
-                        new Book(7, "算法导论"),
-                        new Book(8, "python核心编程"),
-                        new Book(9, "编译器工程"),
-                        new Book(10, "编译原理"),
-                        new Book(11, "python cookbook"),
-                        new Book(12, "javascript高级程序设计")
-                );
-                booksIterator = books.iterator();
-                System.out.println("dump!!!!");
-            }
-
-            @Override
-            public void close() {
-
-            }
-
-            @Override
-            public boolean hasNext() {
-                return booksIterator.hasNext();
-            }
-
-            @Override
-            public InputDocument next() {
-                Book book = booksIterator.next();
-                InputDocument inputDocument = new InputDocument();
-                inputDocument.addField("id", book.id);
-                inputDocument.addField("name", book.name);
-                inputDocument.addField("updateDate", book.updateDate);
-                return inputDocument;
-            }
-        };
+        DataProvider dataProvider = new DataProviderFoo();
 
         delayTimeScheduler.startSchedule(dataProvider, searchEngine);
 
         for (int i = 0; i < 100; ++i) {
             SearchQuery searchQuery = new SearchQuery();
-            searchQuery.setQuery("name:*");
+            searchQuery.setQuery("*:*");
             QueryResponse queryResponse = searchEngine.query(searchQuery);
             System.out.println(queryResponse.getTotalHits());
             System.out.println(queryResponse.getOutputDocuments());
             Thread.sleep(1000);
         }
 
+    }
+
+    static class DataProviderFoo implements DataProvider, TimeRangeAwire {
+        private List<Book> books;
+        private Iterator<Book> booksIterator;
+
+        @Override
+        public void init() {
+            books = Arrays.asList(
+                    new Book(1, "thinking in c++"),
+                    new Book(2, "流量的密码"),
+                    new Book(3, "精通css"),
+                    new Book(4, "effective c++"),
+                    new Book(5, "世界是平的"),
+                    new Book(6, "ajax in action"),
+                    new Book(7, "算法导论"),
+                    new Book(8, "python核心编程"),
+                    new Book(9, "编译器工程"),
+                    new Book(10, "编译原理"),
+                    new Book(11, "python cookbook"),
+                    new Book(12, "javascript高级程序设计")
+            );
+            booksIterator = books.iterator();
+            System.out.println("dump!!!!");
+        }
+
+        @Override
+        public void close() {
+
+        }
+
+        @Override
+        public boolean hasNext() {
+            return booksIterator.hasNext();
+        }
+
+        @Override
+        public InputDocument next() {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Book book = booksIterator.next();
+            InputDocument inputDocument = new InputDocument();
+            inputDocument.addField("id", book.id);
+            inputDocument.addField("name", book.name);
+            inputDocument.addField("updateDate", book.updateDate);
+            return inputDocument;
+        }
+        @Override
+        public void setTimeRange(TimeRange timeRange) {
+            // TODO
+            System.out.println("time range: " + timeRange);
+
+        }
     }
 
     static class Book {

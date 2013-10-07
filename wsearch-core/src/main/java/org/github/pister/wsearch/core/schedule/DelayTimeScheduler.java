@@ -9,15 +9,20 @@ import java.util.concurrent.TimeUnit;
  * Date: 13-10-7
  * Time: 上午10:40
  */
-public class DelayTimeScheduler extends AbstractIndexDumpScheduler {
+public class DelayTimeScheduler extends IncrIndexDumpScheduler {
 
-    private int initialDelay;
+    private int delayInSeconds;
 
-    private int delay;
+    private TimeRangeService timeRangeService;
 
-    public DelayTimeScheduler(int initialDelay, int delay) {
-        this.initialDelay = initialDelay;
-        this.delay = delay;
+    public DelayTimeScheduler(int delayInSeconds) {
+        this.delayInSeconds = delayInSeconds;
+        this.timeRangeService = new RamTimeRangeService(delayInSeconds);
+    }
+
+    @Override
+    protected TimeRangeService getTimeRangeService() {
+        return timeRangeService;
     }
 
     @Override
@@ -27,7 +32,7 @@ public class DelayTimeScheduler extends AbstractIndexDumpScheduler {
 
             @Override
             public void submit(Runnable runnable) {
-                scheduledExecutorService.scheduleWithFixedDelay(runnable, initialDelay, delay, TimeUnit.SECONDS);
+                scheduledExecutorService.scheduleWithFixedDelay(runnable, 0, delayInSeconds, TimeUnit.SECONDS);
             }
 
 

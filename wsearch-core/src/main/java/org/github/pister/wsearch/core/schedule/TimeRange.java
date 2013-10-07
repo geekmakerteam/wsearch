@@ -28,4 +28,12 @@ public class TimeRange {
     public void setStart(Date start) {
         this.start = start;
     }
+
+    @Override
+    public String toString() {
+        return "TimeRange{" +
+                "end=" + end +
+                ", start=" + start +
+                '}';
+    }
 }

@@ -14,20 +14,16 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-     private TimeRangeService timeRangeService = new NullTimeRangeService();
 
     private int logPerSize = 1000;
 
     protected void dump(DataProvider dataProvider, SearchEngine searchEngine) {
         int count = 0;
         try {
-            onBeforeDump();
-            TimeRange timeRange = timeRangeService.nextTimeRange();
-            if (dataProvider instanceof TimeRangeAwire) {
-                ((TimeRangeAwire)dataProvider).setTimeRange(timeRange);
-            }
+            onBeforeDump(dataProvider, searchEngine);
+
             dataProvider.init();
-            onStartingDump();
+            onStartingDump(dataProvider, searchEngine);
             while (dataProvider.hasNext()) {
                 searchEngine.add(dataProvider.next());
                 ++count;
@@ -36,12 +32,11 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
                 }
             }
             searchEngine.commitAndOptimize();
-            timeRangeService.saveTimeRange(timeRange);
-            onAfterDump();
+            onAfterDump(dataProvider, searchEngine);
         } catch (Throwable t) {
             log.error("dump error", t);
             try {
-                onDumpError(t);
+                onDumpError(dataProvider, searchEngine, t);
             } catch (Throwable t2) {
                 log.error("on dump error", t2);
             }
@@ -66,20 +61,20 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
     protected abstract Trigger getTrigger();
 
 
-    protected void onBeforeDump() {
+    protected void onBeforeDump(DataProvider dataProvider, SearchEngine searchEngine) {
 
     }
 
-    protected void onStartingDump() {
+    protected void onStartingDump(DataProvider dataProvider, SearchEngine searchEngine) {
 
     }
 
-    protected void onAfterDump() {
+    protected void onAfterDump(DataProvider dataProvider, SearchEngine searchEngine) {
 
     }
 
 
-    protected void onDumpError(Throwable t) {
+    protected void onDumpError(DataProvider dataProvider, SearchEngine searchEngine, Throwable t) {
 
     }
 

@@ -7,8 +7,10 @@ package org.github.pister.wsearch.core.schedule;
  */
 public interface TimeRangeService {
 
-    TimeRange nextTimeRange();
+    TimeRange getTimeRange();
 
-    void saveTimeRange(TimeRange timeRange);
+    void nextTimeRange();
+
+    int getRangeStepSeconds();
 
 }
