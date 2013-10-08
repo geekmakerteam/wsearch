@@ -13,6 +13,24 @@ import java.io.IOException;
  */
 public class FileUtil {
 
+    public static void main(String[] args) {
+        deleteFiles(new File("/Users/longyi/temp/d1/data-2"));
+    }
+
+    public static void deleteFiles(File path) {
+        if (path == null) {
+            return;
+        }
+        if (path.isFile()) {
+            path.delete();
+            return;
+        }
+        for (File f : path.listFiles()) {
+            deleteFiles(f);
+        }
+        path.delete();
+    }
+
     public static String readFromFile(File target) {
         final int BUF_LEN = 1024 * 2;
         FileReader fileReader = null;

@@ -1,6 +1,6 @@
-package org.github.pister.wsearch.core.schedule;
+package org.github.pister.wsearch.core.schedule.dump;
 
-import org.github.pister.wsearch.core.dataprovider.DataProvider;
+import org.github.pister.wsearch.core.schedule.DumpScheduleService;
 import org.github.pister.wsearch.core.searcher.SearchEngine;
 
 /**
@@ -14,9 +14,9 @@ public interface DumpContext {
 
     Object getAttribute(String name);
 
-    DataProvider getDataProvider();
+    //SearchEngine getSearchEngine();
 
-    SearchEngine getSearchEngine();
+    //void setSearchEngine(SearchEngine searchEngine);
 
     boolean isCancel();
 
@@ -25,4 +25,5 @@ public interface DumpContext {
     DumpScheduleService getDumpScheduleService();
 
     void setDumpScheduleService(DumpScheduleService dumpScheduleService);
+
 }

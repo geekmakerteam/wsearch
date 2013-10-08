@@ -15,15 +15,10 @@ import java.util.Map;
  */
 public class Schema {
 
-    private SchemaMeta schemaMeta;
     private String idName = "id";
     private String defaultSearchField;
     private Map<String, FieldInfo> fieldInfos = new HashMap<String, FieldInfo>();
     private Analyzer analyzer = new StandardAnalyzer(LuceneConfig.LUCENE_VERSION);
-
-    public Schema(SchemaMeta schemaMeta) {
-        this.schemaMeta = schemaMeta;
-    }
 
     public String getIdName() {
         return idName;
@@ -39,14 +34,6 @@ public class Schema {
 
     public void addFieldInfo(FieldInfo fieldInfo) {
         fieldInfos.put(fieldInfo.getName(), fieldInfo);
-    }
-
-    public SchemaMeta getSchemaMeta() {
-        return schemaMeta;
-    }
-
-    public void setSchemaMeta(SchemaMeta schemaMeta) {
-        this.schemaMeta = schemaMeta;
     }
 
     public Analyzer getAnalyzer() {

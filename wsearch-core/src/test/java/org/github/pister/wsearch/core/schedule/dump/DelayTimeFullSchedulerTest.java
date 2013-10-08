@@ -1,13 +1,14 @@
-package org.github.pister.wsearch.core.schedule;
+package org.github.pister.wsearch.core.schedule.dump;
 
 import junit.framework.TestCase;
 import org.github.pister.wsearch.core.dataprovider.DataProvider;
 import org.github.pister.wsearch.core.doc.InputDocument;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
-import org.github.pister.wsearch.core.schema.RAMSchemaMeta;
+import org.github.pister.wsearch.core.schema.FileDataDirectory;
 import org.github.pister.wsearch.core.schema.Schema;
 import org.github.pister.wsearch.core.searcher.SearchEngine;
 import org.github.pister.wsearch.core.searcher.engine.DefaultSearchEngine;
+import org.github.pister.wsearch.core.searcher.engine.SearchEngineWrapper;
 import org.github.pister.wsearch.core.searcher.query.SearchQuery;
 import org.github.pister.wsearch.core.searcher.response.QueryResponse;
 
@@ -18,50 +19,51 @@ import java.util.List;
 
 /**
  * User: longyi
- * Date: 13-10-7
- * Time: 上午11:33
+ * Date: 13-10-8
+ * Time: 上午10:16
  */
-public class DelayTimeSchedulerTest extends TestCase {
+public class DelayTimeFullSchedulerTest extends TestCase {
     SearchEngine searchEngine;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
 
-        Schema schema = new Schema(new RAMSchemaMeta());
+        Schema schema = new Schema();
         schema.addFieldInfo(new FieldInfo("id").setIndex(true).setStore(true));
         schema.addFieldInfo(new FieldInfo("name").setIndex(true).setStore(true).setType("text"));
         schema.addFieldInfo(new FieldInfo("updateDate").setIndex(false).setStore(true));
-        searchEngine = new DefaultSearchEngine(schema);
+        searchEngine = new DefaultSearchEngine(new FileDataDirectory("/Users/longyi/temp/d1"), schema);
 
     }
 
     public void testClose() throws InterruptedException {
-        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10, new RamTimeRangeService());
+        DelayTimeFullScheduler fullScheduler = new DelayTimeFullScheduler(10);
 
         DataProvider dataProvider = new DataProviderFoo();
 
-        delayTimeScheduler.startSchedule(dataProvider, searchEngine);
-
+        fullScheduler.startSchedule(dataProvider, searchEngine);
 
         Thread.sleep(11000);
         System.out.println("==============waiting==============");
-        delayTimeScheduler.waitForClose(20000);
+        fullScheduler.waitForClose(20000);
         System.out.println("==============done!!==============");
 
     }
 
     public void testDump() throws InterruptedException {
-        DelayTimeScheduler delayTimeScheduler = new DelayTimeScheduler(10, new FileTimeRangeService("/Users/longyi/temp/inc_date1"));
+        DelayTimeFullScheduler fullScheduler = new DelayTimeFullScheduler(100);
+        SearchEngineWrapper searchEngineWrapper = new SearchEngineWrapper(searchEngine);
+        fullScheduler.setEngineSwitchCallback(searchEngineWrapper);
 
         DataProvider dataProvider = new DataProviderFoo();
 
-        delayTimeScheduler.startSchedule(dataProvider, searchEngine);
+        fullScheduler.startSchedule(dataProvider, searchEngineWrapper);
 
-        for (int i = 0; i < 100; ++i) {
+        for (int i = 0; i < 10000; ++i) {
             SearchQuery searchQuery = new SearchQuery();
             searchQuery.setQuery("*:*");
-            QueryResponse queryResponse = searchEngine.query(searchQuery);
+            QueryResponse queryResponse = searchEngineWrapper.query(searchQuery);
             System.out.println(queryResponse.getTotalHits());
             System.out.println(queryResponse.getOutputDocuments());
             Thread.sleep(1000);
@@ -69,7 +71,7 @@ public class DelayTimeSchedulerTest extends TestCase {
 
     }
 
-    static class DataProviderFoo implements DataProvider, TimeRangeAwire {
+    static class DataProviderFoo implements DataProvider {
         private List<Book> books;
         private Iterator<Book> booksIterator;
 
@@ -117,12 +119,6 @@ public class DelayTimeSchedulerTest extends TestCase {
             inputDocument.addField("updateDate", book.updateDate);
             return inputDocument;
         }
-        @Override
-        public void setTimeRange(TimeRange timeRange) {
-            // TODO
-            System.out.println("time range: " + timeRange);
-
-        }
     }
 
     static class Book {
@@ -136,4 +132,5 @@ public class DelayTimeSchedulerTest extends TestCase {
             this.updateDate = new Date();
         }
     }
+
 }

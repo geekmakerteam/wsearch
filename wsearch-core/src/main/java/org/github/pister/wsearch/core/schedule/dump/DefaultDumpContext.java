@@ -1,6 +1,7 @@
-package org.github.pister.wsearch.core.schedule;
+package org.github.pister.wsearch.core.schedule.dump;
 
 import org.github.pister.wsearch.core.dataprovider.DataProvider;
+import org.github.pister.wsearch.core.schedule.DumpScheduleService;
 import org.github.pister.wsearch.core.searcher.SearchEngine;
 
 import java.util.HashMap;
@@ -16,13 +17,9 @@ public class DefaultDumpContext implements DumpContext {
     private Map<String, Object> attributes = new HashMap<String, Object>();
 
     private DumpScheduleService dumpScheduleService;
-    private DataProvider dataProvider;
-    private SearchEngine searchEngine;
     private boolean cancel;
 
-    public DefaultDumpContext(DataProvider dataProvider, SearchEngine searchEngine) {
-        this.dataProvider = dataProvider;
-        this.searchEngine = searchEngine;
+    public DefaultDumpContext() {
     }
 
     @Override
@@ -33,16 +30,6 @@ public class DefaultDumpContext implements DumpContext {
     @Override
     public Object getAttribute(String name) {
         return attributes.get(name);
-    }
-
-    @Override
-    public DataProvider getDataProvider() {
-        return dataProvider;
-    }
-
-    @Override
-    public SearchEngine getSearchEngine() {
-        return searchEngine;
     }
 
     public boolean isCancel() {
@@ -62,4 +49,5 @@ public class DefaultDumpContext implements DumpContext {
     public void setDumpScheduleService(DumpScheduleService dumpScheduleService) {
         this.dumpScheduleService = dumpScheduleService;
     }
+
 }

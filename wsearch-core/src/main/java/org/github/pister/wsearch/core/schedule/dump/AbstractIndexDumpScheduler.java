@@ -1,8 +1,11 @@
-package org.github.pister.wsearch.core.schedule;
+package org.github.pister.wsearch.core.schedule.dump;
 
 import org.github.pister.wsearch.core.dataprovider.DataProvider;
 import org.github.pister.wsearch.core.log.Logger;
 import org.github.pister.wsearch.core.log.LoggerFactory;
+import org.github.pister.wsearch.core.schedule.DumpScheduleService;
+import org.github.pister.wsearch.core.schedule.SearchEngineSwitchCallback;
+import org.github.pister.wsearch.core.schedule.handler.ScheduleHandler;
 import org.github.pister.wsearch.core.searcher.SearchEngine;
 
 import java.util.concurrent.TimeUnit;
@@ -19,17 +22,21 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private int logPerSize = 1000;
     protected DumpScheduleService dumpScheduleService;
+    protected SearchEngineSwitchCallback engineSwitchCallback;
+    protected volatile SearchEngine currentSearchEngine;
+    protected volatile DataProvider dataProvider;
+    private int logPerSize = 1000;
     private AtomicBoolean finish = new AtomicBoolean(false);
     private AtomicBoolean cancel = new AtomicBoolean(false);
     private Lock closeLock = new ReentrantLock();
     private Condition closeCondition = closeLock.newCondition();
 
-    protected void dump(DataProvider dataProvider, SearchEngine searchEngine) {
+    protected void dump() {
         int count = 0;
-        DumpContext dumpContext = new DefaultDumpContext(dataProvider, searchEngine);
+        DumpContext dumpContext = new DefaultDumpContext();
         dumpContext.setDumpScheduleService(dumpScheduleService);
+        SearchEngine searchEngine = null;
         try {
             try {
                 finish.set(false);
@@ -37,6 +44,10 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
                 dataProvider.init();
                 onStartingDump(dumpContext);
+
+                searchEngine = currentSearchEngine;
+
+                DataProvider dataProvider = this.dataProvider;
                 while (!cancel.get() && dataProvider.hasNext()) {
                     searchEngine.add(dataProvider.next());
                     ++count;
@@ -45,7 +56,11 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
                     }
                 }
                 dumpContext.setCancel(cancel.get());
-                searchEngine.commitAndOptimize();
+                if (cancel.get()) {
+                    searchEngine.rollback();
+                } else {
+                    searchEngine.commitAndOptimize();
+                }
                 onAfterDump(dumpContext);
             } finally {
                 finish.set(true);
@@ -63,17 +78,21 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
             } catch (Throwable t2) {
                 log.error("on dump error", t2);
             }
-            log.warn("rollbacking...");
-            searchEngine.rollback();
-            log.warn("rollback finish.");
+            if (searchEngine != null) {
+                log.warn("rollbacking...");
+                searchEngine.rollback();
+                log.warn("rollback finish.");
+            }
         } finally {
             dataProvider.close();
         }
     }
 
+    protected abstract ScheduleHandler getScheduleHandler();
+
     public void waitForClose(int waitForSeconds) throws InterruptedException {
         cancel.set(true);
-        onCancel();
+        getScheduleHandler().onCancel();
         try {
             closeLock.lock();
             while (!finish.get()) {
@@ -84,14 +103,14 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
         }
     }
 
-    protected abstract void onCancel();
-
     @Override
-    public void startSchedule(final DataProvider dataProvider, final SearchEngine searchEngine) {
-        this.getTrigger().submit(new Runnable() {
+    public void startSchedule(DataProvider dataProvider, SearchEngine inputSearchEngine) {
+        this.dataProvider = dataProvider;
+        this.currentSearchEngine = inputSearchEngine;
+        getScheduleHandler().getTrigger().submit(new Runnable() {
             @Override
             public void run() {
-                dump(dataProvider, searchEngine);
+                dump();
             }
         });
     }
@@ -100,8 +119,6 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
     public void setDumpScheduleService(DumpScheduleService dumpScheduleService) {
         this.dumpScheduleService = dumpScheduleService;
     }
-
-    protected abstract Trigger getTrigger();
 
     protected void onBeforeDump(DumpContext dumpContext) {
 
@@ -119,5 +136,8 @@ public abstract class AbstractIndexDumpScheduler implements IndexDumpScheduler {
 
     }
 
-
+    @Override
+    public void setEngineSwitchCallback(SearchEngineSwitchCallback engineSwitchCallback) {
+        this.engineSwitchCallback = engineSwitchCallback;
+    }
 }

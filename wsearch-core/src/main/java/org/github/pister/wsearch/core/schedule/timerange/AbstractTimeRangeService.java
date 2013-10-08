@@ -1,6 +1,4 @@
-package org.github.pister.wsearch.core.schedule;
-
-import org.github.pister.wsearch.core.util.date.DateUtil;
+package org.github.pister.wsearch.core.schedule.timerange;
 
 import java.util.Date;
 

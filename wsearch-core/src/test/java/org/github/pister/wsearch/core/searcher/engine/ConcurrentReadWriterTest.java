@@ -3,9 +3,9 @@ package org.github.pister.wsearch.core.searcher.engine;
 import junit.framework.TestCase;
 import org.github.pister.wsearch.core.doc.InputDocument;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
-import org.github.pister.wsearch.core.schema.FileSchemaMeta;
+import org.github.pister.wsearch.core.schema.FileDataDirectory;
 import org.github.pister.wsearch.core.schema.Schema;
-import org.github.pister.wsearch.core.schema.SchemaMeta;
+import org.github.pister.wsearch.core.schema.DataDirectory;
 import org.github.pister.wsearch.core.searcher.query.SearchQuery;
 import org.github.pister.wsearch.core.searcher.response.QueryResponse;
 
@@ -78,8 +78,8 @@ public class ConcurrentReadWriterTest extends TestCase {
     public void setUp() throws Exception {
         super.setUp();
         String schemaPath = "/Users/longyi/temp/concurrent_test1";
-        SchemaMeta schemaMeta = new FileSchemaMeta(schemaPath);
-        Schema schema = new Schema(schemaMeta);
+        DataDirectory dataDirectory = new FileDataDirectory(schemaPath);
+        Schema schema = new Schema();
         {
             FieldInfo fieldInfo = new FieldInfo("id");
             fieldInfo.setIndex(true);
@@ -99,7 +99,7 @@ public class ConcurrentReadWriterTest extends TestCase {
             fieldInfo.setType("date");
             schema.addFieldInfo(fieldInfo);
         }
-        DefaultSearchEngine searchEngine = new DefaultSearchEngine(schema);
+        DefaultSearchEngine searchEngine = new DefaultSearchEngine(dataDirectory, schema);
 
         this.searchEngine = searchEngine;
     }

@@ -1,4 +1,4 @@
-package org.github.pister.wsearch.core.schedule;
+package org.github.pister.wsearch.core.schedule.timerange;
 
 import java.io.Serializable;
 import java.util.Date;

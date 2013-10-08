@@ -1,6 +1,4 @@
-package org.github.pister.wsearch.core.schedule;
-
-import java.util.Date;
+package org.github.pister.wsearch.core.schedule.timerange;
 
 /**
  * User: longyi

@@ -1,13 +1,13 @@
 package org.github.pister.wsearch.core.searcher;
 
 import org.github.pister.wsearch.core.doc.InputDocument;
+import org.github.pister.wsearch.core.schema.DataDirectory;
+import org.github.pister.wsearch.core.schema.Schema;
 import org.github.pister.wsearch.core.searcher.query.SearchQuery;
 import org.github.pister.wsearch.core.searcher.response.AddResponse;
 import org.github.pister.wsearch.core.searcher.response.DeleteResponse;
 import org.github.pister.wsearch.core.searcher.response.OperationResponse;
-import org.github.pister.wsearch.core.searcher.response.PongResponse;
 import org.github.pister.wsearch.core.searcher.response.QueryResponse;
-import org.github.pister.wsearch.core.searcher.response.Response;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,4 +39,9 @@ public interface SearchEngine {
 
     QueryResponse query(SearchQuery searchQuery);
 
+    Schema getSchema();
+
+    DataDirectory getDataDirectory();
+
+    void close();
 }

@@ -19,6 +19,7 @@ import org.github.pister.wsearch.core.doc.InputDocument;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
 import org.github.pister.wsearch.core.log.Logger;
 import org.github.pister.wsearch.core.log.LoggerFactory;
+import org.github.pister.wsearch.core.schema.DataDirectory;
 import org.github.pister.wsearch.core.schema.Schema;
 import org.github.pister.wsearch.core.searcher.SearchEngine;
 import org.github.pister.wsearch.core.searcher.query.FieldSort;
@@ -37,10 +38,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -52,6 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultSearchEngine implements SearchEngine {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSearchEngine.class);
+    private DataDirectory dataDirectory;
     private Schema schema;
     private volatile IndexWriter indexWriter;
     private volatile IndexSearcher indexSearcher;
@@ -61,11 +61,21 @@ public class DefaultSearchEngine implements SearchEngine {
     private AtomicBoolean opened = new AtomicBoolean(false);
     private AtomicInteger updateCount = new AtomicInteger(0);
     private Lock reopenLock = new ReentrantLock();
-    private Condition reopenCondition = reopenLock.newCondition();
 
-    public DefaultSearchEngine(Schema schema) {
+    public DefaultSearchEngine(DataDirectory dataDirectory, Schema schema) {
+        this.dataDirectory = dataDirectory;
         this.schema = schema;
         init();
+    }
+
+    @Override
+    public DataDirectory getDataDirectory() {
+        return dataDirectory;
+    }
+
+    @Override
+    public Schema getSchema() {
+        return schema;
     }
 
     private void init() {
@@ -73,7 +83,7 @@ public class DefaultSearchEngine implements SearchEngine {
             return;
         }
         try {
-            directory = schema.getSchemaMeta().openDirectory();
+            directory = dataDirectory.openDirectory();
             open(directory);
             opened.set(true);
         } catch (Exception e) {
@@ -147,11 +157,15 @@ public class DefaultSearchEngine implements SearchEngine {
         return new OperationResponse();
     }
 
+    @Override
     public void close() {
         CloseUtil.close(indexSearcher);
         CloseUtil.close(indexWriter);
         CloseUtil.close(directory);
         opened.set(false);
+        if (logger.isDebugEnabled()) {
+            logger.debug("search engine has been closed.");
+        }
     }
 
     @Override

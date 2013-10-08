@@ -1,6 +1,7 @@
 package org.github.pister.wsearch.core.schedule;
 
 import org.github.pister.wsearch.core.dataprovider.DataProvider;
+import org.github.pister.wsearch.core.schedule.dump.IndexDumpScheduler;
 import org.github.pister.wsearch.core.searcher.SearchEngine;
 import org.github.pister.wsearch.core.util.ClassUtil;
 
@@ -16,12 +17,12 @@ public class DumpScheduleService {
     private IndexDumpScheduler fullIndexDumpScheduler;
     private IndexDumpScheduler incrIndexDumpScheduler;
 
-    public void registerFullDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine) {
-        fulldumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine);
+    public void registerFullDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine, SearchEngineSwitchCallback engineSwitchCallback) {
+        fulldumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine, engineSwitchCallback);
     }
 
-    public void registerIncrDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine) {
-        incrdumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine);
+    public void registerIncrDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine, SearchEngineSwitchCallback engineSwitchCallback) {
+        incrdumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine, engineSwitchCallback);
     }
 
     public void start() {
@@ -44,6 +45,7 @@ public class DumpScheduleService {
     private IndexDumpScheduler startSchedule(ScheduleInfo scheduleInfo) {
         IndexDumpScheduler ret = ClassUtil.newInstance(scheduleInfo.scheduleClass);
         ret.setDumpScheduleService(this);
+        ret.setEngineSwitchCallback(scheduleInfo.engineSwitchCallback);
         ret.startSchedule(scheduleInfo.dataProvider, scheduleInfo.searchEngine);
         return ret;
     }
@@ -60,11 +62,13 @@ public class DumpScheduleService {
         Class<? extends IndexDumpScheduler> scheduleClass;
         DataProvider dataProvider;
         SearchEngine searchEngine;
+        SearchEngineSwitchCallback engineSwitchCallback;
 
-        ScheduleInfo(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine) {
+        ScheduleInfo(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine, SearchEngineSwitchCallback engineSwitchCallback) {
             this.scheduleClass = scheduleClass;
             this.dataProvider = dataProvider;
             this.searchEngine = searchEngine;
+            this.engineSwitchCallback = engineSwitchCallback;
         }
     }
 

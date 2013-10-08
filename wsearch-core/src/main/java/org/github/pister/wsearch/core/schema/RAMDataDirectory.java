@@ -8,10 +8,25 @@ import org.apache.lucene.store.RAMDirectory;
  * Date: 13-9-30
  * Time: 下午4:08
  */
-public class RAMSchemaMeta implements SchemaMeta {
+public class RAMDataDirectory implements DataDirectory {
+
     @Override
     public Directory openDirectory() {
         return new RAMDirectory();
     }
 
+    @Override
+    public DataDirectory createNextDataDirectory() {
+        return new RAMDataDirectory();
+    }
+
+    @Override
+    public void clear() {
+
+    }
+
+    @Override
+    public void saveConf() {
+
+    }
 }

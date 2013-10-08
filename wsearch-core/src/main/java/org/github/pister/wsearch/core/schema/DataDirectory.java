@@ -7,8 +7,14 @@ import org.apache.lucene.store.Directory;
  * Date: 13-9-30
  * Time: 下午4:06
  */
-public interface SchemaMeta {
+public interface DataDirectory {
 
     Directory openDirectory();
+
+    DataDirectory createNextDataDirectory();
+
+    void clear();
+
+    void saveConf();
 
 }

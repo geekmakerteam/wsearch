@@ -4,10 +4,10 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 import org.github.pister.wsearch.core.doc.InputDocument;
 import org.github.pister.wsearch.core.doc.field.FieldInfo;
-import org.github.pister.wsearch.core.schema.FileSchemaMeta;
-import org.github.pister.wsearch.core.schema.RAMSchemaMeta;
+import org.github.pister.wsearch.core.schema.FileDataDirectory;
+import org.github.pister.wsearch.core.schema.RAMDataDirectory;
 import org.github.pister.wsearch.core.schema.Schema;
-import org.github.pister.wsearch.core.schema.SchemaMeta;
+import org.github.pister.wsearch.core.schema.DataDirectory;
 import org.github.pister.wsearch.core.searcher.query.FieldSort;
 import org.github.pister.wsearch.core.searcher.query.OutputDocument;
 import org.github.pister.wsearch.core.searcher.query.SearchQuery;
@@ -31,16 +31,16 @@ public class DefaultSearchEngineTest extends TestCase {
 
     private DefaultSearchEngine initSearchEngine(String name) {
         String schemaPath = "/Users/longyi/temp/" + name;
-        SchemaMeta schemaMeta = new FileSchemaMeta(schemaPath);
-        return initSearchEngine(schemaMeta);
+        DataDirectory dataDirectory = new FileDataDirectory(schemaPath);
+        return initSearchEngine(dataDirectory);
     }
 
     private DefaultSearchEngine initSearchEngine() {
-        return initSearchEngine(new RAMSchemaMeta());
+        return initSearchEngine(new RAMDataDirectory());
     }
 
-    private DefaultSearchEngine initSearchEngine(SchemaMeta schemaMeta) {
-        Schema schema = new Schema(schemaMeta);
+    private DefaultSearchEngine initSearchEngine(DataDirectory dataDirectory) {
+        Schema schema = new Schema();
         {
             FieldInfo fieldInfo = new FieldInfo("id");
             fieldInfo.setIndex(true);
@@ -80,8 +80,8 @@ public class DefaultSearchEngineTest extends TestCase {
             fieldInfo.setType("date");
             schema.addFieldInfo(fieldInfo);
         }
-        DefaultSearchEngine embedSearchServer = new DefaultSearchEngine(schema);
-        return embedSearchServer;
+        DefaultSearchEngine searchEngine = new DefaultSearchEngine(dataDirectory, schema);
+        return searchEngine;
 
     }
 
