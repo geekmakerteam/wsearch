@@ -14,7 +14,7 @@ public class DelayTimeIncrScheduler extends IncrIndexDumpScheduler {
     private ScheduleHandler scheduleHandler;
 
     public DelayTimeIncrScheduler(int delayInSeconds, TimeRangeService timeRangeService) {
-        super(delayInSeconds, timeRangeService);
+        super(timeRangeService);
         this.scheduleHandler = new TimeDelayHandler(delayInSeconds);
     }
 

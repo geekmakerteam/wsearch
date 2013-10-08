@@ -13,13 +13,10 @@ import org.github.pister.wsearch.core.schedule.timerange.TimeRangeService;
 public abstract class IncrIndexDumpScheduler extends AbstractIndexDumpScheduler {
 
     private static final String TIME_RANGE_NAME = "time_range_name";
-    private int delayInSeconds;
     private TimeRangeService timeRangeService;
 
-    protected IncrIndexDumpScheduler(int delayInSeconds, TimeRangeService timeRangeService) {
-        this.delayInSeconds = delayInSeconds;
+    protected IncrIndexDumpScheduler(TimeRangeService timeRangeService) {
         this.timeRangeService = timeRangeService;
-        this.timeRangeService.setRangeStepSeconds(delayInSeconds);
     }
 
     @Override

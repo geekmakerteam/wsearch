@@ -16,13 +16,18 @@ public class DumpScheduleService {
     private ScheduleInfo incrdumpScheduleInfo;
     private IndexDumpScheduler fullIndexDumpScheduler;
     private IndexDumpScheduler incrIndexDumpScheduler;
+    private SearchEngine searchEngine;
 
-    public void registerFullDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine, SearchEngineSwitchCallback engineSwitchCallback) {
-        fulldumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine, engineSwitchCallback);
+    public DumpScheduleService(SearchEngine searchEngine) {
+        this.searchEngine = searchEngine;
     }
 
-    public void registerIncrDump(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine, SearchEngineSwitchCallback engineSwitchCallback) {
-        incrdumpScheduleInfo = new ScheduleInfo(scheduleClass, dataProvider, searchEngine, engineSwitchCallback);
+    public void registerFullDump(Class<? extends IndexDumpScheduler> scheduleClass, Object[] constructorArguments, DataProvider dataProvider, SearchEngineSwitchCallback engineSwitchCallback) {
+        fulldumpScheduleInfo = new ScheduleInfo(scheduleClass, constructorArguments, dataProvider, engineSwitchCallback);
+    }
+
+    public void registerIncrDump(Class<? extends IndexDumpScheduler> scheduleClass, Object[] constructorArguments, DataProvider dataProvider) {
+        incrdumpScheduleInfo = new ScheduleInfo(scheduleClass, constructorArguments, dataProvider, null);
     }
 
     public void start() {
@@ -30,23 +35,32 @@ public class DumpScheduleService {
         this.startIncrSchedule();
     }
 
-    public void startFullSchedule() {
+    private void startFullSchedule() {
         if (fulldumpScheduleInfo != null) {
-            fullIndexDumpScheduler = startSchedule(fulldumpScheduleInfo);
+            fullIndexDumpScheduler = startSchedule(fulldumpScheduleInfo, null);
         }
     }
 
-    public void startIncrSchedule() {
+    private void startIncrSchedule() {
         if (incrdumpScheduleInfo != null) {
-            incrIndexDumpScheduler = startSchedule(incrdumpScheduleInfo);
+            incrIndexDumpScheduler = startSchedule(incrdumpScheduleInfo, null);
         }
     }
 
-    private IndexDumpScheduler startSchedule(ScheduleInfo scheduleInfo) {
-        IndexDumpScheduler ret = ClassUtil.newInstance(scheduleInfo.scheduleClass);
+    public void startIncrSchedule(SearchEngine searchEngine) {
+        if (incrdumpScheduleInfo != null) {
+            incrIndexDumpScheduler = startSchedule(incrdumpScheduleInfo, searchEngine);
+        }
+    }
+
+    private IndexDumpScheduler startSchedule(ScheduleInfo scheduleInfo, SearchEngine searchEngine) {
+        IndexDumpScheduler ret = ClassUtil.newInstance(scheduleInfo.getScheduleClass(), scheduleInfo.getConstructorArguments());
         ret.setDumpScheduleService(this);
-        ret.setEngineSwitchCallback(scheduleInfo.engineSwitchCallback);
-        ret.startSchedule(scheduleInfo.dataProvider, scheduleInfo.searchEngine);
+        ret.setEngineSwitchCallback(scheduleInfo.getEngineSwitchCallback());
+        if (searchEngine == null) {
+            searchEngine = this.searchEngine;
+        }
+        ret.startSchedule(scheduleInfo.getDataProvider(), searchEngine);
         return ret;
     }
 
@@ -58,18 +72,12 @@ public class DumpScheduleService {
         return incrIndexDumpScheduler;
     }
 
-    static class ScheduleInfo {
-        Class<? extends IndexDumpScheduler> scheduleClass;
-        DataProvider dataProvider;
-        SearchEngine searchEngine;
-        SearchEngineSwitchCallback engineSwitchCallback;
+    public ScheduleInfo getFulldumpScheduleInfo() {
+        return fulldumpScheduleInfo;
+    }
 
-        ScheduleInfo(Class<? extends IndexDumpScheduler> scheduleClass, DataProvider dataProvider, SearchEngine searchEngine, SearchEngineSwitchCallback engineSwitchCallback) {
-            this.scheduleClass = scheduleClass;
-            this.dataProvider = dataProvider;
-            this.searchEngine = searchEngine;
-            this.engineSwitchCallback = engineSwitchCallback;
-        }
+    public ScheduleInfo getIncrdumpScheduleInfo() {
+        return incrdumpScheduleInfo;
     }
 
 

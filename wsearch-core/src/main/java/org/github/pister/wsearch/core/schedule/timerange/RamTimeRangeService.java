@@ -1,7 +1,5 @@
 package org.github.pister.wsearch.core.schedule.timerange;
 
-import org.github.pister.wsearch.core.schedule.timerange.StringStoreTimeRangeService;
-
 /**
  * User: longyi
  * Date: 13-10-7

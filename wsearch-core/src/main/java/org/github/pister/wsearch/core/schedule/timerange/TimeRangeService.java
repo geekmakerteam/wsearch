@@ -11,7 +11,4 @@ public interface TimeRangeService {
 
     void saveTimeRange(TimeRange timeRange);
 
-    int getRangeStepSeconds();
-
-    void setRangeStepSeconds(int rangeStepSeconds);
 }

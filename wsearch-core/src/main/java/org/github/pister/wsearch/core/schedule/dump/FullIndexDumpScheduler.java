@@ -47,7 +47,8 @@ public abstract class FullIndexDumpScheduler extends AbstractIndexDumpScheduler 
         // 打开增量
         if (dumpScheduleService != null) {
             log.warn("starting increment build job.");
-            dumpScheduleService.startIncrSchedule();
+
+            dumpScheduleService.startIncrSchedule(this.currentSearchEngine);
         }
     }
 

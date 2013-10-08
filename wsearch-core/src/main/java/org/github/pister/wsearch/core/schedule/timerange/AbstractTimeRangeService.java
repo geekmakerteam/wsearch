@@ -13,8 +13,6 @@ public abstract class AbstractTimeRangeService implements TimeRangeService {
 
     protected abstract Date loadLastTime();
 
-    private int rangeStepSeconds = 60;
-
     @Override
     public TimeRange getTimeRange() {
         Date date = loadLastTime();
@@ -23,18 +21,10 @@ public abstract class AbstractTimeRangeService implements TimeRangeService {
 
     @Override
     public void saveTimeRange(TimeRange timeRange) {
-        Date oldTime = timeRange.getEnd();
-        storeLastTime(oldTime);
-    }
-
-    @Override
-    public int getRangeStepSeconds() {
-        return rangeStepSeconds;
-    }
-
-    @Override
-    public void setRangeStepSeconds(int rangeStepSeconds) {
-        this.rangeStepSeconds = rangeStepSeconds;
+        if (timeRange != null) {
+            Date oldTime = timeRange.getEnd();
+            storeLastTime(oldTime);
+        }
     }
 
     protected TimeRange getDefaultTimeRange() {
