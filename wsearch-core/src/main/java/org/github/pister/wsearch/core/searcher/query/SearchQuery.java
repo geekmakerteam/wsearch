@@ -12,10 +12,6 @@ public class SearchQuery implements Serializable {
 
     private static final long serialVersionUID = -3631454362128879058L;
 
-    public static final int ASC = 0;
-
-    public static final int DESC = 1;
-
     private String query;
 
     private int pageNo = 1;
@@ -61,4 +57,5 @@ public class SearchQuery implements Serializable {
     public void setFieldSorts(List<FieldSort> fieldSorts) {
         this.fieldSorts = fieldSorts;
     }
+
 }

@@ -16,6 +16,8 @@ public class QueryResponse extends Response {
 
     private List<OutputDocument> outputDocuments;
 
+    private long timeEscape;
+
     public List<OutputDocument> getOutputDocuments() {
         return outputDocuments;
     }
@@ -37,5 +39,13 @@ public class QueryResponse extends Response {
 
     public void setTotalHits(int totalHits) {
         this.totalHits = totalHits;
+    }
+
+    public long getTimeEscape() {
+        return timeEscape;
+    }
+
+    public void setTimeEscape(long timeEscape) {
+        this.timeEscape = timeEscape;
     }
 }

@@ -12,6 +12,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopFieldDocs;
 import org.apache.lucene.store.Directory;
 import org.github.pister.wsearch.core.doc.DocumentTransformUtil;
@@ -180,7 +181,6 @@ public class DefaultSearchEngine implements SearchEngine {
             for (Document document : DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema)) {
                 indexWriter.updateDocument(new Term(schema.getIdName(), document.getFieldable(schema.getIdName()).stringValue()), document, schema.getAnalyzer());
             }
-            //  indexWriter.addDocuments(DocumentTransformUtil.toLuceneDocuments(inputDocuments, schema), schema.getAnalyzer());
             updateCount.addAndGet(inputDocuments.size());
             if (logger.isDebugEnabled()) {
                 logger.debug("add documents finish.");
@@ -366,7 +366,6 @@ public class DefaultSearchEngine implements SearchEngine {
     }
 
     private Filter getFilter(SearchQuery searchQuery) {
-
         return null;
     }
 
@@ -376,6 +375,7 @@ public class DefaultSearchEngine implements SearchEngine {
             if (logger.isDebugEnabled()) {
                 logger.debug("searching query...");
             }
+            long start = System.currentTimeMillis();
             QueryParser queryParser = new QueryParser(LuceneConfig.LUCENE_VERSION, schema.getDefaultSearchField(), schema.getAnalyzer());
             Query query = queryParser.parse(searchQuery.getQuery());
             int pageNo = searchQuery.getPageNo();
@@ -409,6 +409,9 @@ public class DefaultSearchEngine implements SearchEngine {
             if (logger.isDebugEnabled()) {
                 logger.debug("search query finish.");
             }
+            long end = System.currentTimeMillis();
+            long timeEscape = end - start;
+            queryResponse.setTimeEscape(timeEscape);
             return queryResponse;
         } catch (Exception e) {
             logger.error("search query error", e);
