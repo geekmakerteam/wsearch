@@ -33,6 +33,9 @@ public class Schema {
     }
 
     public void addFieldInfo(FieldInfo fieldInfo) {
+        if (fieldInfos.containsKey(fieldInfo.getName())) {
+            throw new IllegalArgumentException("field name:" + fieldInfo.getName() + " has been exist!");
+        }
         fieldInfos.put(fieldInfo.getName(), fieldInfo);
     }
 
