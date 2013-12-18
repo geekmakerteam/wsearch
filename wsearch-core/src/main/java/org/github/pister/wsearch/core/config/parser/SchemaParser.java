@@ -62,8 +62,6 @@ public class SchemaParser {
         XPathExpression defaultFieldExpr = xpath.compile("schema/defaultField/text()");
         XPathExpression analyzerExpr = xpath.compile("schema/analyzer/text()");
         XPathExpression fieldsListExpr = xpath.compile("schema/fields/field");
-        XPathExpression copyFieldsListExpr = xpath.compile("schema/copyFields/field");
-
 
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);

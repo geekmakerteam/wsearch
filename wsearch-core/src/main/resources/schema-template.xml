@@ -13,5 +13,4 @@
         <field name="updateDate" index="true" store="false"></field>
     </fields>
 
-
 </schema>
