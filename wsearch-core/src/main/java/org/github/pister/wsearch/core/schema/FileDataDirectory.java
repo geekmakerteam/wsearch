@@ -55,7 +55,7 @@ public class FileDataDirectory implements DataDirectory {
         if (!seqFile.exists()) {
             return 0;
         }
-        return Integer.parseInt(FileUtil.readFromFile(seqFile));
+        return Integer.parseInt(FileUtil.readFromFile(seqFile).trim());
     }
 
     public void saveConf() {

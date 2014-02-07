@@ -31,23 +31,28 @@ public class DumpScheduleServiceTest extends TestCase {
 
     SearchEngine searchEngine;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
 
+    private Schema getSchema() {
         Schema schema = new Schema();
         schema.addFieldInfo(new FieldInfo("id").setIndex(true).setStore(true));
         schema.addFieldInfo(new FieldInfo("name").setIndex(true).setStore(true).setType("text"));
         schema.addFieldInfo(new FieldInfo("updateDate").setIndex(false).setStore(true));
-        searchEngine = new DefaultSearchEngine(new FileDataDirectory("/Users/longyi/temp/d2"), schema);
+        return schema;
+    }
+
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        searchEngine = new DefaultSearchEngine(new FileDataDirectory("/Users/longyi/temp/d3"), getSchema());
 
     }
     public void testXX() throws InterruptedException {
         SearchEngineWrapper searchEngineWrapper = new SearchEngineWrapper(searchEngine);
 
         DumpScheduleService dumpScheduleService = new DumpScheduleService(searchEngineWrapper);
-        dumpScheduleService.registerIncrDump(DelayTimeIncrScheduler.class, new Object[] {10, new RamTimeRangeService()}, new DataProviderIncr());
-        dumpScheduleService.registerFullDump(DelayTimeFullScheduler.class, new Object[] {30}, new DataProviderFull(), searchEngineWrapper);
+       // dumpScheduleService.registerIncrDump(DelayTimeIncrScheduler.class, new Object[] {10, new RamTimeRangeService()}, new DataProviderIncr());
+        dumpScheduleService.registerFullDump(DelayTimeFullScheduler.class, new Object[] {300}, new DataProviderFull(), searchEngineWrapper);
 
         dumpScheduleService.start();
 
@@ -89,7 +94,7 @@ public class DumpScheduleServiceTest extends TestCase {
         @Override
         public InputDocument next() {
             try {
-                Thread.sleep(random.nextInt(10*1000));
+                Thread.sleep(random.nextInt(100));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

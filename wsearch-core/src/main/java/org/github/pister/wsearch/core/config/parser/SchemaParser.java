@@ -37,7 +37,7 @@ public class SchemaParser {
         if (DEFAULT_ANALYZER.equals(analyzer)) {
             return new StandardAnalyzer(LuceneConfig.LUCENE_VERSION);
         }
-        return (Analyzer)ClassUtil.newInstance(analyzer);
+        return (Analyzer) ClassUtil.newInstance(analyzer);
     }
 
     protected String getIdName(String idName) {
@@ -56,52 +56,54 @@ public class SchemaParser {
 
 
     public Schema parse(InputStream is) throws Exception {
-        XPathFactory factory = XPathFactory.newInstance();
-        XPath xpath = factory.newXPath();
-        XPathExpression idNameExpr = xpath.compile("schema/idName/text()");
-        XPathExpression defaultFieldExpr = xpath.compile("schema/defaultField/text()");
-        XPathExpression analyzerExpr = xpath.compile("schema/analyzer/text()");
-        XPathExpression fieldsListExpr = xpath.compile("schema/fields/field");
+        try {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xpath = factory.newXPath();
+            XPathExpression idNameExpr = xpath.compile("schema/idName/text()");
+            XPathExpression defaultFieldExpr = xpath.compile("schema/defaultField/text()");
+            XPathExpression analyzerExpr = xpath.compile("schema/analyzer/text()");
+            XPathExpression fieldsListExpr = xpath.compile("schema/fields/field");
 
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-        Document document = builder.parse(is);
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            documentBuilderFactory.setNamespaceAware(true);
+            DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
+            Document document = builder.parse(is);
 
-        String idName = (String)idNameExpr.evaluate(document, XPathConstants.STRING);
-        String defaultField = (String)defaultFieldExpr.evaluate(document, XPathConstants.STRING);
-        String analyzer = (String)analyzerExpr.evaluate(document, XPathConstants.STRING);
-        NodeList fieldsList = (NodeList)fieldsListExpr.evaluate(document, XPathConstants.NODESET);
+            String idName = (String) idNameExpr.evaluate(document, XPathConstants.STRING);
+            String defaultField = (String) defaultFieldExpr.evaluate(document, XPathConstants.STRING);
+            String analyzer = (String) analyzerExpr.evaluate(document, XPathConstants.STRING);
+            NodeList fieldsList = (NodeList) fieldsListExpr.evaluate(document, XPathConstants.NODESET);
 
-        Schema schema = new Schema();
-        schema.setIdName(getIdName(idName));
-        schema.setDefaultSearchField(getDefaultField(defaultField));
-        schema.setAnalyzer(createAnalyzer(analyzer));
+            Schema schema = new Schema();
+            schema.setIdName(getIdName(idName));
+            schema.setDefaultSearchField(getDefaultField(defaultField));
+            schema.setAnalyzer(createAnalyzer(analyzer));
 
-        if (fieldsList == null || fieldsList.getLength() == 0) {
-            throw new RuntimeException("fields/field can not be empty!");
-        }
-
-        for (int i = 0, len = fieldsList.getLength(); i < len; i++) {
-            Node fieldNode = fieldsList.item(i);
-            NamedNodeMap namedNodeMap = fieldNode.getAttributes();
-            String name = getAttrString(namedNodeMap, "name", null);
-            if (StringUtil.isEmpty(name)) {
-                throw new RuntimeException("field's name can not be empty!");
+            if (fieldsList == null || fieldsList.getLength() == 0) {
+                throw new RuntimeException("fields/field can not be empty!");
             }
-            FieldInfo fieldInfo = new FieldInfo(name);
-            fieldInfo.setIndex(getAttrBoolean(namedNodeMap, "index", false));
-            fieldInfo.setStore(getAttrBoolean(namedNodeMap, "store", false));
-            fieldInfo.setType(getAttrString(namedNodeMap, "type", null));
-            fieldInfo.setPrecisionStep(getAttrInt(namedNodeMap, "precisionStep", 0));
-            fieldInfo.setNorms(getAttrBoolean(namedNodeMap, "norms", false));
-            fieldInfo.setBoost(getAttrFloat(namedNodeMap, "boost", 0.0f));
 
-            schema.addFieldInfo(fieldInfo);
+            for (int i = 0, len = fieldsList.getLength(); i < len; i++) {
+                Node fieldNode = fieldsList.item(i);
+                NamedNodeMap namedNodeMap = fieldNode.getAttributes();
+                String name = getAttrString(namedNodeMap, "name", null);
+                if (StringUtil.isEmpty(name)) {
+                    throw new RuntimeException("field's name can not be empty!");
+                }
+                FieldInfo fieldInfo = new FieldInfo(name);
+                fieldInfo.setIndex(getAttrBoolean(namedNodeMap, "index", false));
+                fieldInfo.setStore(getAttrBoolean(namedNodeMap, "store", false));
+                fieldInfo.setType(getAttrString(namedNodeMap, "type", null));
+                fieldInfo.setPrecisionStep(getAttrInt(namedNodeMap, "precisionStep", 0));
+                fieldInfo.setNorms(getAttrBoolean(namedNodeMap, "norms", false));
+                fieldInfo.setBoost(getAttrFloat(namedNodeMap, "boost", 0.0f));
+
+                schema.addFieldInfo(fieldInfo);
+            }
+            return schema;
+        } finally {
+            is.close();
         }
-
-
-        return schema;
     }
 
     private static String getAttrString(NamedNodeMap namedNodeMap, String name, String defaultValue) {
