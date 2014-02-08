@@ -12,7 +12,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopFieldDocs;
 import org.apache.lucene.store.Directory;
 import org.github.pister.wsearch.core.doc.DocumentTransformUtil;
@@ -55,6 +54,7 @@ public class DefaultSearchEngine implements SearchEngine {
     private DataDirectory dataDirectory;
     private Schema schema;
     private volatile IndexWriter indexWriter;
+    private volatile IndexReader indexReader;
     private volatile IndexSearcher indexSearcher;
     private Directory directory;
     private int defaultMergeSize = 5;
@@ -108,11 +108,14 @@ public class DefaultSearchEngine implements SearchEngine {
             synchronized (this) {
                 IndexWriter oldIndexWriter = this.indexWriter;
                 IndexSearcher oldIndexSearcher = this.indexSearcher;
+                IndexReader oldIndexReader = this.indexReader;
 
                 this.indexWriter = newIndexWriter;
                 this.indexSearcher = newIndexSearcher;
+                this.indexReader = newIndexReader;
 
                 CloseUtil.close(oldIndexSearcher);
+                CloseUtil.close(oldIndexReader);
                 CloseUtil.close(oldIndexWriter);
             }
             if (logger.isDebugEnabled()) {
@@ -133,10 +136,16 @@ public class DefaultSearchEngine implements SearchEngine {
             reopenLock.lock();
             if (updateCount.get() > 0) {
                 logger.info("proccessing reopen...");
-                IndexReader indexReader = IndexReader.openIfChanged(indexSearcher.getIndexReader());
-                IndexSearcher newIndexSearcher = new IndexSearcher(indexReader);
-                // please do not indexSearcher.close();
-                indexSearcher = newIndexSearcher;
+                IndexReader oldIndexReader = this.indexReader;
+                IndexSearcher oldIndexSearcher = this.indexSearcher;
+                IndexReader newIndexReader = IndexReader.openIfChanged(oldIndexReader);
+                if (newIndexReader != null) {
+                    IndexSearcher newIndexSearcher = new IndexSearcher(newIndexReader);
+                    indexSearcher = newIndexSearcher;
+                    indexReader = newIndexReader;
+                    CloseUtil.close(oldIndexReader);
+                    CloseUtil.close(oldIndexSearcher);
+                }
                 updateCount.set(0);
                 logger.info("proccess reopen finish.");
             } else {
@@ -161,11 +170,12 @@ public class DefaultSearchEngine implements SearchEngine {
     @Override
     public void close() {
         CloseUtil.close(indexSearcher);
+        CloseUtil.close(indexReader);
         CloseUtil.close(indexWriter);
         CloseUtil.close(directory);
         opened.set(false);
-        if (logger.isDebugEnabled()) {
-            logger.debug("search engine has been closed.");
+        if (logger.isWarnEnabled()) {
+            logger.warn("search engine has been closed.");
         }
     }
 
